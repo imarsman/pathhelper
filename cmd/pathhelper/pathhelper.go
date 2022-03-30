@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/alexflint/go-arg"
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
@@ -23,5 +25,17 @@ func main() {
 	}
 	arg.MustParse(&args)
 
-	paths.ExtractPaths()
+	if args.Bash {
+		fmt.Println(paths.BashFormatPath())
+		fmt.Println(paths.BashFormatManPath())
+	} else if args.ZSH {
+		fmt.Println(paths.ZshFormatPath())
+		fmt.Println(paths.ZshFormatManPath())
+	} else if args.CSH {
+		fmt.Println(paths.CshFormatPath())
+		fmt.Println(paths.CshFormatManPath())
+	} else {
+		fmt.Println(paths.BashFormatPath())
+		fmt.Println(paths.BashFormatManPath())
+	}
 }
