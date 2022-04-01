@@ -13,16 +13,15 @@ import (
 
 var allPaths []string
 
-func init() {
+// /usr/libexec/path_helper
 
+var args struct {
+	Bash bool `arg:"-s,--bash"`
+	CSH  bool `arg:"-c,--csh"`
+	ZSH  bool `arg:"-z,--zsh"`
 }
 
 func main() {
-	var args struct {
-		Bash bool `arg:"-s,--bash"`
-		CSH  bool `arg:"-c,--csh"`
-		ZSH  bool `arg:"-z,--zsh"`
-	}
 	arg.MustParse(&args)
 
 	if args.Bash {
