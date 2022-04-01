@@ -8,26 +8,79 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/imarsman/pathhelper/cmd/logging"
 )
+
+var configPaths *pathSet
+var configManPaths *pathSet
+
+func init() {
+	configPaths = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
+	configManPaths = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
+
+	configPaths.populate()
+	// fmt.Println(configPaths)
+	configManPaths.populate()
+	// fmt.Println(configManPaths)
+}
 
 const tilde = `~`
 
-var startingPathDirs = []string{"~/.config/pathhelper/paths.d",
-	"/etc/paths",
-	"/etc/paths.d"}
-var startingManPathDirs = []string{"~/.config/pathhelper/manpaths.d",
-	"/etc/manpaths",
-	"/etc/manpaths.d"}
+type pathType string
 
-var finalPaths []string
-var finalManPaths []string
+var manPath pathType = "MANPATH"
+var pathPath pathType = "PATH"
 
-func init() {
-	finalPaths = extractPaths(startingPathDirs)
-	finalManPaths = extractPaths(startingManPathDirs)
+type pathSet struct {
+	kind       pathType
+	systemPath string
+	systemDir  string
+	userDir    string
+	paths      []string
 }
 
-func verify(path string) (err error) {
+func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
+	ps = &pathSet{}
+	ps.kind = kind
+	ps.systemPath = systemPath
+	ps.systemDir = systemDir
+	ps.userDir = userDir
+	ps.userDir = cleanDir(ps.userDir)
+
+	return
+}
+
+func (ps *pathSet) populate() (err error) {
+	pathsInDir, err := filesInDir(ps.userDir)
+	if err != nil {
+		logging.Error("error", err)
+	}
+	for _, p := range pathsInDir {
+		lines := pathsFromFile(p)
+		for i, line := range lines {
+			lines[i] = cleanDir(line)
+		}
+		ps.paths = append(ps.paths, lines...)
+	}
+
+	lines := pathsFromFile(ps.systemPath)
+	for i, line := range lines {
+		lines[i] = cleanDir(line)
+	}
+	ps.paths = append(ps.paths, lines...)
+
+	pathsInDir, err = filesInDir(ps.systemDir)
+	if err != nil {
+		return
+	}
+	for _, p := range pathsInDir {
+		lines := pathsFromFile(p)
+		for i, line := range lines {
+			lines[i] = cleanDir(line)
+		}
+		ps.paths = append(ps.paths, lines...)
+	}
 
 	return
 }
@@ -42,24 +95,61 @@ func verifyPath(path string) (err error) {
 	return
 }
 
-func getPathsInDir(path string) (paths []string, err error) {
-	files, err := ioutil.ReadDir(path)
+// pathsFromFile get valid paths from a file
+func pathsFromFile(file string) (lines []string) {
+	// The system path is a file with lines in it
+	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
+		logging.Error(err)
+	}
+	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
+	for scanner.Scan() {
+		path := scanner.Text()
+		path = cleanDir(path)
+		err = verifyPath(path)
+		if err != nil {
+			continue
+		}
+		lines = append(lines, scanner.Text())
+	}
+	err = scanner.Err()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func cleanDir(path string) string {
+	var homeDir, err = os.UserHomeDir()
+	if err != nil {
+
+	}
+	path = strings.TrimSpace(path)
+	if strings.HasPrefix(path, tilde) {
+		path = strings.Replace(path, tilde, "", 1)
+		path = filepath.Join(homeDir, path)
+	}
+
+	return path
+}
+
+// filesInDir get list of valid files in a dir
+func filesInDir(basePath string) (paths []string, err error) {
+	files, err := ioutil.ReadDir(basePath)
+	if err != nil {
+		logging.Error(err)
 		return
 	}
 
 	for _, file := range files {
 		if !file.IsDir() {
-			err = verify(file.Name())
+			newPath := filepath.Join(basePath, file.Name())
+			err = verifyPath(newPath)
 			if err != nil {
 				continue
 			}
-			path := filepath.Join(path, file.Name())
-			err = verifyPath(path)
-			if err != nil {
-				continue
-			}
-			paths = append(paths, path)
+			paths = append(paths, newPath)
 		}
 	}
 
@@ -68,93 +158,57 @@ func getPathsInDir(path string) (paths []string, err error) {
 
 // Paths get list of paths
 func Paths() (paths []string) {
-	return finalPaths
+	return configPaths.paths
 }
 
 // ManPaths get list of man paths
 func ManPaths() (paths []string) {
-	return finalManPaths
+	return configManPaths.paths
 }
 
 // ZshFormatPath get zsh format path declaration
 func ZshFormatPath() (output string) {
-	return zshFormat("PATH")
+	return configPaths.zshFormat()
 }
 
 // ZshFormatManPath get zsh format man path declaration
 func ZshFormatManPath() (output string) {
-	return zshFormat("MANPATH")
+	return configManPaths.zshFormat()
 }
 
-func zshFormat(envVar string) (output string) {
-	output = fmt.Sprintf("export %s=\"%s\";", envVar, strings.Join(finalPaths, ":"))
-
+func (ps pathSet) zshFormat() (output string) {
+	output = fmt.Sprintf("export %s=\"%s\";", ps.kind, strings.Join(ps.paths, ":"))
 	return
 }
 
 // CshFormatPath get csh format path declaration
 func CshFormatPath() (output string) {
-	return cshFormat("PATH")
+	return configPaths.cshFormat()
 }
 
 // CshFormatManPath get csh format man path declaration
 func CshFormatManPath() (output string) {
-	return cshFormat("MANPATH")
+	return configManPaths.cshFormat()
 }
 
-func cshFormat(envVar string) (output string) {
-	output = fmt.Sprintf("setenv %s=\"%s\";", envVar, strings.Join(finalPaths, ":"))
+func (ps pathSet) cshFormat() (output string) {
+	output = fmt.Sprintf("setenv %s=\"%s\";", ps.kind, strings.Join(ps.paths, ":"))
 
 	return
 }
 
 // BashFormatPath get bash format path declaration
 func BashFormatPath() (output string) {
-	return bashFormat("PATH")
+	return configPaths.bashFormat()
 }
 
 // BashFormatManPath get bash format man path declaration
 func BashFormatManPath() (output string) {
-	return bashFormat("MANPATH")
+	return configManPaths.bashFormat()
 }
 
-func bashFormat(envVar string) (output string) {
-	output = fmt.Sprintf("%s=\"%s\"; export %s;", envVar, strings.Join(finalPaths, ":"), envVar)
-
-	return
-}
-
-// extractPaths get list of paths from sources
-func extractPaths(paths []string) (foundPaths []string) {
-	for _, startingPath := range paths {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			os.Exit(1)
-		}
-		if strings.HasPrefix(startingPath, "~") {
-			startingPath = strings.Replace(startingPath, "~", home, 1)
-		}
-		err = verifyPath(startingPath)
-		if err != nil {
-			continue
-		}
-		paths, err := getPathsInDir(startingPath)
-		if err != nil {
-			continue
-		}
-		for _, path := range paths {
-			bytes, err := ioutil.ReadFile(path)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
-			for scanner.Scan() {
-				foundPaths = append(foundPaths, scanner.Text())
-			}
-			err = scanner.Err()
-		}
-	}
+func (ps pathSet) bashFormat() (output string) {
+	output = fmt.Sprintf("%s=\"%s\"; export %s;", ps.kind, strings.Join(ps.paths, ":"), ps.kind)
 
 	return
 }
