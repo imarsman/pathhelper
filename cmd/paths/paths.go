@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/imarsman/pathhelper/cmd/logging"
 )
 
 var configPaths *pathSet
@@ -20,9 +18,7 @@ func init() {
 	configManPaths = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
 
 	configPaths.populate()
-	// fmt.Println(configPaths)
 	configManPaths.populate()
-	// fmt.Println(configManPaths)
 }
 
 const tilde = `~`
@@ -54,7 +50,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 func (ps *pathSet) populate() (err error) {
 	pathsInDir, err := filesInDir(ps.userDir)
 	if err != nil {
-		logging.Error("error", err)
+		return
 	}
 	for _, p := range pathsInDir {
 		lines := pathsFromFile(p)
@@ -100,7 +96,7 @@ func pathsFromFile(file string) (lines []string) {
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		logging.Error(err)
+		return
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
 	for scanner.Scan() {
@@ -120,25 +116,25 @@ func pathsFromFile(file string) (lines []string) {
 	return
 }
 
-func cleanDir(path string) string {
+func cleanDir(path string) (cleanDir string) {
 	var homeDir, err = os.UserHomeDir()
 	if err != nil {
-
+		return
 	}
-	path = strings.TrimSpace(path)
+
+	cleanDir = strings.TrimSpace(path)
 	if strings.HasPrefix(path, tilde) {
-		path = strings.Replace(path, tilde, "", 1)
-		path = filepath.Join(homeDir, path)
+		cleanDir = strings.Replace(cleanDir, tilde, "", 1)
+		cleanDir = filepath.Join(homeDir, cleanDir)
 	}
 
-	return path
+	return
 }
 
 // filesInDir get list of valid files in a dir
 func filesInDir(basePath string) (paths []string, err error) {
 	files, err := ioutil.ReadDir(basePath)
 	if err != nil {
-		logging.Error(err)
 		return
 	}
 
