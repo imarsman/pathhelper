@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alexflint/go-arg"
+	"github.com/imarsman/pathhelper/cmd/logging"
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
 
@@ -16,13 +17,18 @@ var allPaths []string
 // /usr/libexec/path_helper
 
 var args struct {
-	Bash bool `arg:"-s,--bash"`
-	CSH  bool `arg:"-c,--csh"`
-	ZSH  bool `arg:"-z,--zsh"`
+	Bash    bool `arg:"-s,--bash"`
+	CSH     bool `arg:"-c,--csh"`
+	ZSH     bool `arg:"-z,--zsh"`
+	Verbose bool `arg:"-v,--verbose"`
 }
 
 func main() {
 	arg.MustParse(&args)
+
+	logging.SetVerbose(args.Verbose)
+
+	logging.Error("hello")
 
 	if args.Bash {
 		fmt.Println(paths.BashFormatPath())

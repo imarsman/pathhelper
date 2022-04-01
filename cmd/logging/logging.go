@@ -1,13 +1,21 @@
 package logging
 
 import (
-	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
-// This logging implementation can change
+// SetVerbose set verbose output based on flag
+func SetVerbose(v bool) {
+	if !v {
+		log.SetOutput(ioutil.Discard)
+	} else {
+		log.SetOutput(os.Stderr)
+	}
+}
 
-// Error print error
-func Error(parts ...any) {
-	fmt.Fprintln(os.Stderr, parts...)
+// Log print error
+func Log(parts ...any) {
+	log.Println(parts...)
 }
