@@ -17,7 +17,7 @@ var verbose bool
 func init() {
 	once.Do(func() {
 		if args.Args.Verbose {
-			Logger = log.New(os.Stdout, "INFO ", log.LUTC)
+			Logger = log.New(os.Stderr, "INFO ", log.LUTC)
 		} else {
 			Logger = log.New(io.Discard, "INFO ", log.LUTC)
 		}
