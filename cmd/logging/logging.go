@@ -1,21 +1,25 @@
 package logging
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
+	"sync"
+
+	"github.com/imarsman/pathhelper/cmd/args"
 )
 
-// SetVerbose set verbose output based on flag
-func SetVerbose(v bool) {
-	if !v {
-		log.SetOutput(ioutil.Discard)
-	} else {
-		log.SetOutput(os.Stderr)
-	}
-}
+// Logger a simple logger for printing out info tied to reading files
+var Logger *log.Logger
+var once sync.Once
+var verbose bool
 
-// Log print error
-func Log(parts ...any) {
-	log.Println(parts...)
+func init() {
+	once.Do(func() {
+		if args.Args.Verbose {
+			Logger = log.New(os.Stdout, "INFO ", log.LUTC)
+		} else {
+			Logger = log.New(io.Discard, "INFO ", log.LUTC)
+		}
+	})
 }
