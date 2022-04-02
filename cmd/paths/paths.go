@@ -84,7 +84,7 @@ func (ps *pathSet) populate() (err error) {
 	return
 }
 
-func verifyPath(path string) (err error) {
+func VerifyPath(path string) (err error) {
 	if _, err = os.Stat(path); err != nil {
 		logging.Logger.Println(err)
 		return
@@ -108,7 +108,7 @@ func pathsFromFile(file string) (lines []string) {
 			continue
 		}
 		path = cleanDir(path)
-		err = verifyPath(path)
+		err = VerifyPath(path)
 		if err != nil {
 			continue
 		}
@@ -150,7 +150,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			newPath := filepath.Join(basePath, file.Name())
-			err = verifyPath(newPath)
+			err = VerifyPath(newPath)
 			if err != nil {
 				logging.Logger.Println(err)
 				continue
