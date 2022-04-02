@@ -55,7 +55,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 func VerifyPath(path string) (err error) {
 	// Check if file exists and return with error if not
 	if _, err = os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		logging.Logger.Println(err)
+		logging.Error.Println(err)
 		return
 	}
 	// Check that the file can be opened as read only
@@ -63,7 +63,7 @@ func VerifyPath(path string) (err error) {
 	defer file.Close()
 	if err != nil {
 		if os.IsPermission(err) {
-			logging.Logger.Printf("Unable to read %s\n", path)
+			logging.Info.Printf("Unable to read %s\n", path)
 			return
 		}
 
@@ -76,13 +76,15 @@ func pathsFromDir(path string) (lines []string) {
 	// Get system file paths
 	pathsInDir, err := filesInDir(path)
 	if err != nil {
-		logging.Logger.Println(err)
+		logging.Info.Println(err)
 		return
 	}
 	for _, p := range pathsInDir {
 		localLines := pathsFromFile(p)
 		for i, line := range localLines {
 			localLines[i] = cleanDir(line)
+			// line = cleanDir(line)
+			// c <- line
 		}
 		lines = append(lines, localLines...)
 	}
@@ -94,6 +96,7 @@ func pathsFromDir(path string) (lines []string) {
 // placing paths in front of system paths could be a security risk if the same
 // named executable is in a part of the filesystem writeable by the user.
 func (ps *pathSet) populate() (err error) {
+	logging.Info.Println("evaluating", ps.systemPath)
 	// Get system path file lines
 	lines := pathsFromFile(ps.systemPath)
 	for i, line := range lines {
@@ -101,9 +104,11 @@ func (ps *pathSet) populate() (err error) {
 	}
 	ps.paths = append(ps.paths, lines...)
 
+	logging.Info.Println("evaluating", ps.systemDir)
 	lines = pathsFromDir(ps.systemDir)
 	ps.paths = append(ps.paths, lines...)
 
+	logging.Info.Println("evaluationg", ps.userDir)
 	lines = pathsFromDir(ps.userDir)
 	ps.paths = append(ps.paths, lines...)
 
@@ -115,7 +120,7 @@ func pathsFromFile(file string) (lines []string) {
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		logging.Logger.Println(err)
+		logging.Info.Println(err)
 		return
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
@@ -125,15 +130,17 @@ func pathsFromFile(file string) (lines []string) {
 			continue
 		}
 		path = cleanDir(path)
+		logging.Info.Println("checking", path)
 		err = VerifyPath(path)
 		if err != nil {
 			continue
 		}
 		lines = append(lines, scanner.Text())
+		// c <- scanner.Text()
 	}
 	err = scanner.Err()
 	if err != nil {
-		logging.Logger.Println(err)
+		logging.Info.Println(err)
 		return
 	}
 
@@ -143,7 +150,7 @@ func pathsFromFile(file string) (lines []string) {
 func cleanDir(path string) (cleanDir string) {
 	var homeDir, err = os.UserHomeDir()
 	if err != nil {
-		logging.Logger.Println(err)
+		logging.Info.Println(err)
 		return
 	}
 
@@ -160,7 +167,8 @@ func cleanDir(path string) (cleanDir string) {
 func filesInDir(basePath string) (paths []string, err error) {
 	files, err := ioutil.ReadDir(basePath)
 	if err != nil {
-		logging.Logger.Println(err)
+		logging.Info.Println(err)
+		logging.Info.Println(err)
 		return
 	}
 
@@ -169,7 +177,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 			newPath := filepath.Join(basePath, file.Name())
 			err = VerifyPath(newPath)
 			if err != nil {
-				logging.Logger.Println(err)
+				logging.Info.Printf("can't read %s %v", newPath, err)
 				continue
 			}
 			paths = append(paths, newPath)

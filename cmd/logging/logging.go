@@ -9,17 +9,20 @@ import (
 	"github.com/imarsman/pathhelper/cmd/args"
 )
 
-// Logger a simple logger for printing out info tied to reading files
-var Logger *log.Logger
+// Info a simple logger for printing out info tied to reading files
+var Info *log.Logger
+var Error *log.Logger
 var once sync.Once
 var verbose bool
 
 func init() {
 	once.Do(func() {
 		if args.Args.Verbose {
-			Logger = log.New(os.Stderr, "INFO ", log.LUTC)
+			Info = log.New(os.Stderr, "INFO ", log.LUTC)
+			Error = log.New(os.Stderr, "ERROR ", log.LUTC)
 		} else {
-			Logger = log.New(io.Discard, "INFO ", log.LUTC)
+			Info = log.New(io.Discard, "INFO ", log.LUTC)
+			Error = log.New(io.Discard, "ERROR ", log.LUTC)
 		}
 	})
 }

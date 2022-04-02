@@ -1,5 +1,8 @@
 # pathhelper
-Helper for building a path for MacOS.
+
+Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
+proper order and did checking of paths. The flow of the program is linear so the use of channels and things like that
+is be overkill.
 
 I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
 `/usr/libexec/path_helper` binary runs on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop.
@@ -71,3 +74,35 @@ Note that formats compatible with `csh`, `bash`, and `zsh` are available using f
 format will be used, which also works for `zsh`. There is also an init (`-i`) method which will make `.config/..`
 directories if they do not exist. Using the `-v` (verbose) flag will show entries that were rejected because they did
 not exist.
+
+Here is a sample of the extra output to stderr when using the `-v` flag. It is reasonably straightforward to use any
+errors in the output in combination with the previous lines to track down invalid paths.
+
+```
+$ pathhelper -z -v
+INFO evaluating /etc/paths
+INFO checking /usr/local/bin
+INFO checking /usr/bin
+INFO checking /bin
+INFO checking /usr/sbin
+INFO checking /sbin
+INFO evaluating /etc/paths.d
+INFO checking /Library/Apple/usr/bin
+INFO checking /opt/X11/bin
+INFO checking /Library/TeX/texbin
+INFO checking /Users/ian/.dotnet/tools
+ERROR stat /Users/ian/.dotnet/tools: no such file or directory
+INFO checking /usr/local/bin
+INFO checking /usr/local/go/bin
+INFO evaluationg /Users/ian/.config/pathhelper/paths.d
+INFO checking /opt/homebrew/bin
+INFO checking /Users/ian/bin
+INFO checking /Users/ian/.ops/bin
+INFO evaluating /etc/manpaths
+INFO checking /usr/share/man
+INFO checking /usr/local/share/man
+INFO evaluating /etc/manpaths.d
+INFO checking /opt/X11/share/man
+INFO checking /Library/TeX/Distributions/.DefaultTeX/Contents/Man
+INFO evaluationg /Users/ian/.config/pathhelper/manpaths.d
+```
