@@ -18,58 +18,32 @@ import (
 func setup() {
 	fmt.Println("setting up local directories")
 	fmt.Println(strings.Repeat("-", len("setting up local directories")))
-	dirMode := fs.FileMode(int(0777))
+	fileMode := fs.FileMode(0755)
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		os.Exit(1)
 	}
-	configDirPath := filepath.Join(homeDir, ".config")
-	err = paths.VerifyPath(configDirPath)
+
+	pathsDir := filepath.Join(homeDir, ".config", "pathhelper", "paths.d")
+	manpathsDir := filepath.Join(homeDir, ".config", "pathhelper", "manpaths.d")
+
+	err = paths.VerifyPath(pathsDir)
 	if err != nil {
-		fmt.Println("Creating ~/.config")
-		err = os.MkdirAll(configDirPath, dirMode)
+		fmt.Println("- creating user paths dir", pathsDir)
+		err = os.MkdirAll(pathsDir, fileMode)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
 	} else {
-		fmt.Println("found", configDirPath)
+		fmt.Printf("- user paths dir %s exists\n", pathsDir)
 	}
-	pathhelperDirPath := filepath.Join(configDirPath, "pathhelper")
-	err = paths.VerifyPath(pathhelperDirPath)
+	err = paths.VerifyPath(manpathsDir)
 	if err != nil {
-		fmt.Println("Creating ~/.config/pathhelper")
-		err = os.MkdirAll(pathhelperDirPath, dirMode)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		fmt.Println("- creating user manpaths dir", manpathsDir)
+		err = os.MkdirAll(manpathsDir, fileMode)
 	} else {
-		fmt.Println("found", pathhelperDirPath)
-	}
-	pathsDirPath := filepath.Join(pathhelperDirPath, "paths.d")
-	err = paths.VerifyPath(pathsDirPath)
-	if err != nil {
-		fmt.Println("Creating ~/.config/pathhelper/pathsPath.d")
-		err = os.MkdirAll(pathsDirPath, dirMode)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		fmt.Println("found", pathsDirPath)
-	}
-	manpathsDirPath := filepath.Join(pathhelperDirPath, "manpaths.d")
-	err = paths.VerifyPath(manpathsDirPath)
-	if err != nil {
-		fmt.Println("Creating ~/.config/pathhelper/manpaths.d")
-		err = os.MkdirAll(manpathsDirPath, dirMode)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	} else {
-		fmt.Println("found", manpathsDirPath)
+		fmt.Printf("- user manpaths dir %s exists\n", manpathsDir)
 	}
 }
 
