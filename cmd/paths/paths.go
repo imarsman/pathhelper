@@ -82,7 +82,6 @@ func (ps *pathSet) populate() (err error) {
 	var c = make(chan (string))
 
 	go func() {
-		// wg.Add(1)
 		for {
 			path, ok := <-c
 			if !ok {
