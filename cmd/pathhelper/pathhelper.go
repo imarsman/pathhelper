@@ -8,21 +8,20 @@ import (
 	"strings"
 
 	"github.com/imarsman/pathhelper/cmd/args"
-	"github.com/imarsman/pathhelper/cmd/logging"
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
 
-func init() {
-}
+// The cli tool that inspired this
+// /usr/libexec/path_helper
 
-func verifyPath(path string) (err error) {
-	if _, err = os.Stat(path); err != nil {
-		logging.Logger.Println(err)
-		return
-	}
+// func verifyPath(path string) (err error) {
+// 	if _, err = os.Stat(path); err != nil {
+// 		logging.Logger.Println(err)
+// 		return
+// 	}
 
-	return
-}
+// 	return
+// }
 
 func setup() {
 	fmt.Println("setting up local directories")
@@ -34,7 +33,7 @@ func setup() {
 		os.Exit(1)
 	}
 	configDirPath := filepath.Join(homeDir, ".config")
-	err = verifyPath(configDirPath)
+	err = paths.VerifyPath(configDirPath)
 	if err != nil {
 		fmt.Println("Creating ~/.config")
 		err = os.MkdirAll(configDirPath, dirMode)
@@ -46,7 +45,7 @@ func setup() {
 		fmt.Println("found", configDirPath)
 	}
 	pathhelperDirPath := filepath.Join(configDirPath, "pathhelper")
-	err = verifyPath(pathhelperDirPath)
+	err = paths.VerifyPath(pathhelperDirPath)
 	if err != nil {
 		fmt.Println("Creating ~/.config/pathhelper")
 		err = os.MkdirAll(pathhelperDirPath, dirMode)
@@ -58,7 +57,7 @@ func setup() {
 		fmt.Println("found", pathhelperDirPath)
 	}
 	pathsDirPath := filepath.Join(pathhelperDirPath, "paths.d")
-	err = verifyPath(pathsDirPath)
+	err = paths.VerifyPath(pathsDirPath)
 	if err != nil {
 		fmt.Println("Creating ~/.config/pathhelper/pathsPath.d")
 		err = os.MkdirAll(pathsDirPath, dirMode)
@@ -69,7 +68,7 @@ func setup() {
 		fmt.Println("found", pathsDirPath)
 	}
 	manpathsDirPath := filepath.Join(pathhelperDirPath, "manpaths.d")
-	err = verifyPath(manpathsDirPath)
+	err = paths.VerifyPath(manpathsDirPath)
 	if err != nil {
 		fmt.Println("Creating ~/.config/pathhelper/manpaths.d")
 		err = os.MkdirAll(manpathsDirPath, dirMode)
@@ -84,11 +83,10 @@ func setup() {
 
 var allPaths []string
 
-// /usr/libexec/path_helper
-
 func main() {
 	if args.Args.Init {
 		setup()
+
 		return
 	}
 
