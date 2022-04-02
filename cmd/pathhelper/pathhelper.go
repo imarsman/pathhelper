@@ -11,7 +11,7 @@ import (
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
 
-// The cli tool that inspired this
+// The MacOS cli tool that inspired this
 // /usr/libexec/path_helper
 
 // setup set up user directories if they don't exist
@@ -55,15 +55,19 @@ func main() {
 	}
 
 	if args.Args.Bash {
+		// Get bash style path and manpath setting
 		fmt.Println(paths.BashFormatPath())
 		fmt.Println(paths.BashFormatManPath())
 	} else if args.Args.ZSH {
+		// Get zsh style path and manpath setting
 		fmt.Println(paths.ZshFormatPath())
 		fmt.Println(paths.ZshFormatManPath())
 	} else if args.Args.CSH {
+		// Get csh style path and manpath setting
 		fmt.Println(paths.CshFormatPath())
 		fmt.Println(paths.CshFormatManPath())
 	} else {
+		// This is the default behaviour of /usr/libexec/path_helper
 		fmt.Println(paths.BashFormatPath())
 		fmt.Println(paths.BashFormatManPath())
 	}
