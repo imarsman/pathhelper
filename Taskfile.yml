@@ -50,8 +50,10 @@ tasks:
     dir: cmd/{{.buildname}}
     cmds:
       - cmd: go build -gcflags '-m -l' pathhelper.go 2>&1
+      - rm -f {{.buildname}}
   show-build:
     desc: show build optimizations
     dir: cmd/{{.buildname}}
     cmds:
       - cmd: go build -gcflags '-S -N' pathhelper.go 2>&1
+      - rm -f {{.buildname}}
