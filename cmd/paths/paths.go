@@ -56,25 +56,41 @@ func VerifyPath(path string) (err error) {
 		logging.Logger.Println(err)
 		return
 	}
+	file, err := os.OpenFile(path, os.O_RDONLY, 0666)
+	defer file.Close()
+	if err != nil {
+		if os.IsPermission(err) {
+			logging.Logger.Printf("Unable to read %s\n", path)
+			return
+		}
+
+	}
 
 	return
 }
 
-func (ps *pathSet) populate() (err error) {
-	// Get user dir paths
-	pathsInDir, err := filesInDir(ps.userDir)
+func pathsFromDir(path string) (lines []string) {
+	// Get system file paths
+	pathsInDir, err := filesInDir(path)
 	if err != nil {
 		logging.Logger.Println(err)
 		return
 	}
 	for _, p := range pathsInDir {
-		lines := pathsFromFile(p)
-		for i, line := range lines {
-			lines[i] = cleanDir(line)
+		localLines := pathsFromFile(p)
+		for i, line := range localLines {
+			localLines[i] = cleanDir(line)
 		}
-		ps.paths = append(ps.paths, lines...)
+		lines = append(lines, localLines...)
 	}
 
+	return
+}
+
+// populate get paths in the order of system file, system dir, then user dir
+// placing paths in front of system paths could be a security risk if the same
+// named executable is in a part of the filesystem writeable by the user.
+func (ps *pathSet) populate() (err error) {
 	// Get system path file lines
 	lines := pathsFromFile(ps.systemPath)
 	for i, line := range lines {
@@ -82,19 +98,11 @@ func (ps *pathSet) populate() (err error) {
 	}
 	ps.paths = append(ps.paths, lines...)
 
-	// Get system file paths
-	pathsInDir, err = filesInDir(ps.systemDir)
-	if err != nil {
-		logging.Logger.Println(err)
-		return
-	}
-	for _, p := range pathsInDir {
-		lines := pathsFromFile(p)
-		for i, line := range lines {
-			lines[i] = cleanDir(line)
-		}
-		ps.paths = append(ps.paths, lines...)
-	}
+	lines = pathsFromDir(ps.systemDir)
+	ps.paths = append(ps.paths, lines...)
+
+	lines = pathsFromDir(ps.userDir)
+	ps.paths = append(ps.paths, lines...)
 
 	return
 }
