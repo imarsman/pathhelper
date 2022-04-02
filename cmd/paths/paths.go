@@ -72,51 +72,48 @@ func VerifyPath(path string) (err error) {
 	return
 }
 
-func pathsFromDir(path string) (lines []string) {
+// populate get paths in the order of system file, system dir, then user dir
+// placing paths in front of system paths could be a security risk if the same
+// named executable is in a part of the filesystem writeable by the user.
+func (ps *pathSet) populate() (err error) {
+	var c = make(chan (string), 1000)
+
+	logging.Info.Println("evaluating", ps.systemPath)
+
+	// Get system path file lines
+	addPathsFromFile(ps.systemPath, c)
+
+	logging.Info.Println("evaluating", ps.systemDir)
+	addPathsFromDir(ps.systemDir, c)
+
+	logging.Info.Println("evaluating", ps.userDir)
+	addPathsFromDir(ps.userDir, c)
+
+	close(c)
+
+	for line := range c {
+		ps.paths = append(ps.paths, line)
+	}
+
+	return
+}
+
+func addPathsFromDir(path string, c chan (string)) (lines []string) {
 	// Get system file paths
 	pathsInDir, err := filesInDir(path)
 	if err != nil {
 		logging.Info.Println(err)
 		return
 	}
-	for _, p := range pathsInDir {
-		localLines := pathsFromFile(p)
-		for i, line := range localLines {
-			localLines[i] = cleanDir(line)
-			// line = cleanDir(line)
-			// c <- line
-		}
-		lines = append(lines, localLines...)
+	for i := 0; i < len(pathsInDir); i++ {
+		addPathsFromFile(pathsInDir[i], c)
 	}
 
 	return
 }
 
-// populate get paths in the order of system file, system dir, then user dir
-// placing paths in front of system paths could be a security risk if the same
-// named executable is in a part of the filesystem writeable by the user.
-func (ps *pathSet) populate() (err error) {
-	logging.Info.Println("evaluating", ps.systemPath)
-	// Get system path file lines
-	lines := pathsFromFile(ps.systemPath)
-	for i, line := range lines {
-		lines[i] = cleanDir(line)
-	}
-	ps.paths = append(ps.paths, lines...)
-
-	logging.Info.Println("evaluating", ps.systemDir)
-	lines = pathsFromDir(ps.systemDir)
-	ps.paths = append(ps.paths, lines...)
-
-	logging.Info.Println("evaluationg", ps.userDir)
-	lines = pathsFromDir(ps.userDir)
-	ps.paths = append(ps.paths, lines...)
-
-	return
-}
-
-// pathsFromFile get valid paths from a file
-func pathsFromFile(file string) (lines []string) {
+// addPathsFromFile get valid paths from a file
+func addPathsFromFile(file string, c chan (string)) {
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -135,8 +132,7 @@ func pathsFromFile(file string) (lines []string) {
 		if err != nil {
 			continue
 		}
-		lines = append(lines, scanner.Text())
-		// c <- scanner.Text()
+		c <- path
 	}
 	err = scanner.Err()
 	if err != nil {
@@ -174,7 +170,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 
 	for _, file := range files {
 		if !file.IsDir() {
-			newPath := filepath.Join(basePath, file.Name())
+			var newPath = filepath.Join(basePath, file.Name())
 			err = VerifyPath(newPath)
 			if err != nil {
 				logging.Info.Printf("can't read %s %v", newPath, err)
