@@ -14,15 +14,7 @@ import (
 // The cli tool that inspired this
 // /usr/libexec/path_helper
 
-// func verifyPath(path string) (err error) {
-// 	if _, err = os.Stat(path); err != nil {
-// 		logging.Logger.Println(err)
-// 		return
-// 	}
-
-// 	return
-// }
-
+// setup set up user directories if they don't exist
 func setup() {
 	fmt.Println("setting up local directories")
 	fmt.Println(strings.Repeat("-", len("setting up local directories")))
@@ -80,8 +72,6 @@ func setup() {
 		fmt.Println("found", manpathsDirPath)
 	}
 }
-
-var allPaths []string
 
 func main() {
 	if args.Args.Init {

@@ -22,12 +22,14 @@ func init() {
 	configManPaths.populate()
 }
 
-const tilde = `~`
-
 type pathType string
 
-var manPath pathType = "MANPATH"
-var pathPath pathType = "PATH"
+const (
+	tilde             = `~`
+	hash              = `#`
+	pathPath pathType = `PATH`
+	manPath  pathType = `MANPATH`
+)
 
 type pathSet struct {
 	kind       pathType
@@ -48,7 +50,18 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	return
 }
 
+// VerifyPath verify a path
+func VerifyPath(path string) (err error) {
+	if _, err = os.Stat(path); err != nil {
+		logging.Logger.Println(err)
+		return
+	}
+
+	return
+}
+
 func (ps *pathSet) populate() (err error) {
+	// Get user dir paths
 	pathsInDir, err := filesInDir(ps.userDir)
 	if err != nil {
 		logging.Logger.Println(err)
@@ -62,12 +75,14 @@ func (ps *pathSet) populate() (err error) {
 		ps.paths = append(ps.paths, lines...)
 	}
 
+	// Get system path file lines
 	lines := pathsFromFile(ps.systemPath)
 	for i, line := range lines {
 		lines[i] = cleanDir(line)
 	}
 	ps.paths = append(ps.paths, lines...)
 
+	// Get system file paths
 	pathsInDir, err = filesInDir(ps.systemDir)
 	if err != nil {
 		logging.Logger.Println(err)
@@ -84,15 +99,6 @@ func (ps *pathSet) populate() (err error) {
 	return
 }
 
-func VerifyPath(path string) (err error) {
-	if _, err = os.Stat(path); err != nil {
-		logging.Logger.Println(err)
-		return
-	}
-
-	return
-}
-
 // pathsFromFile get valid paths from a file
 func pathsFromFile(file string) (lines []string) {
 	// The system path is a file with lines in it
@@ -104,7 +110,7 @@ func pathsFromFile(file string) (lines []string) {
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(path, "#") {
+		if strings.HasPrefix(path, hash) {
 			continue
 		}
 		path = cleanDir(path)
@@ -132,7 +138,7 @@ func cleanDir(path string) (cleanDir string) {
 
 	cleanDir = strings.TrimSpace(path)
 	if strings.HasPrefix(path, tilde) {
-		cleanDir = strings.Replace(cleanDir, tilde, "", 1)
+		cleanDir = cleanDir[1:]
 		cleanDir = filepath.Join(homeDir, cleanDir)
 	}
 

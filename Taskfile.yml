@@ -45,3 +45,13 @@ tasks:
         ignore_error: true
       # - go build -ldflags="{{.LDFLAGS}}" -o ../../build/{{.buildname}} .
       - go build -o ../../build/{{.buildname}} .
+  show-allocations:
+    desc: show build optimizations
+    dir: cmd/{{.buildname}}
+    cmds:
+      - cmd: go build -gcflags '-m -l' pathhelper.go 2>&1
+  show-build:
+    desc: show build optimizations
+    dir: cmd/{{.buildname}}
+    cmds:
+      - cmd: go build -gcflags '-S -N' pathhelper.go 2>&1
