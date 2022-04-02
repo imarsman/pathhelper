@@ -2,6 +2,7 @@ package paths
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -52,11 +53,13 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 
 // VerifyPath verify a path
 func VerifyPath(path string) (err error) {
-	if _, err = os.Stat(path); err != nil {
+	// Check if file exists and return with error if not
+	if _, err = os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		logging.Logger.Println(err)
 		return
 	}
-	file, err := os.OpenFile(path, os.O_RDONLY, 0666)
+	// Check that the file can be opened as read only
+	file, err := os.Open(path)
 	defer file.Close()
 	if err != nil {
 		if os.IsPermission(err) {
