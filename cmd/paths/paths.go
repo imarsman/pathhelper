@@ -103,7 +103,10 @@ func pathsFromFile(file string) (lines []string) {
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
 	for scanner.Scan() {
-		path := scanner.Text()
+		path := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(path, "#") {
+			continue
+		}
 		path = cleanDir(path)
 		err = verifyPath(path)
 		if err != nil {

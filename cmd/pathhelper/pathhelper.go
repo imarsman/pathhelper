@@ -2,16 +2,84 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/imarsman/pathhelper/cmd/args"
+	"github.com/imarsman/pathhelper/cmd/logging"
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
 
-// /usr/libexec/path_helper -s
-// /etc/paths
-// /etc/manpaths
-
 func init() {
+}
+
+func verifyPath(path string) (err error) {
+	if _, err = os.Stat(path); err != nil {
+		logging.Logger.Println(err)
+		return
+	}
+
+	return
+}
+
+func setup() {
+	fmt.Println("setting up local directories")
+	fmt.Println(strings.Repeat("-", len("setting up local directories")))
+	dirMode := fs.FileMode(int(0777))
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		os.Exit(1)
+	}
+	configDirPath := filepath.Join(homeDir, ".config")
+	err = verifyPath(configDirPath)
+	if err != nil {
+		fmt.Println("Creating ~/.config")
+		err = os.MkdirAll(configDirPath, dirMode)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	} else {
+		fmt.Println("found", configDirPath)
+	}
+	pathhelperDirPath := filepath.Join(configDirPath, "pathhelper")
+	err = verifyPath(pathhelperDirPath)
+	if err != nil {
+		fmt.Println("Creating ~/.config/pathhelper")
+		err = os.MkdirAll(pathhelperDirPath, dirMode)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	} else {
+		fmt.Println("found", pathhelperDirPath)
+	}
+	pathsDirPath := filepath.Join(pathhelperDirPath, "paths.d")
+	err = verifyPath(pathsDirPath)
+	if err != nil {
+		fmt.Println("Creating ~/.config/pathhelper/pathsPath.d")
+		err = os.MkdirAll(pathsDirPath, dirMode)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("found", pathsDirPath)
+	}
+	manpathsDirPath := filepath.Join(pathhelperDirPath, "manpaths.d")
+	err = verifyPath(manpathsDirPath)
+	if err != nil {
+		fmt.Println("Creating ~/.config/pathhelper/manpaths.d")
+		err = os.MkdirAll(manpathsDirPath, dirMode)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	} else {
+		fmt.Println("found", manpathsDirPath)
+	}
 }
 
 var allPaths []string
@@ -19,6 +87,11 @@ var allPaths []string
 // /usr/libexec/path_helper
 
 func main() {
+	if args.Args.Init {
+		setup()
+		return
+	}
+
 	if args.Args.Bash {
 		fmt.Println(paths.BashFormatPath())
 		fmt.Println(paths.BashFormatManPath())

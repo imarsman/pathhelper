@@ -11,4 +11,5 @@ var Args struct {
 	CSH     bool `arg:"-c,--csh"`
 	ZSH     bool `arg:"-z,--zsh"`
 	Verbose bool `arg:"-v,--verbose"`
+	Init    bool `arg:"-i,--init"`
 }
