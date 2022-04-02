@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/alexflint/go-arg"
-	"github.com/imarsman/pathhelper/cmd/logging"
+	"github.com/imarsman/pathhelper/cmd/args"
 	"github.com/imarsman/pathhelper/cmd/paths"
 )
 
@@ -12,31 +11,21 @@ import (
 // /etc/paths
 // /etc/manpaths
 
+func init() {
+}
+
 var allPaths []string
 
 // /usr/libexec/path_helper
 
-var args struct {
-	Bash    bool `arg:"-s,--bash"`
-	CSH     bool `arg:"-c,--csh"`
-	ZSH     bool `arg:"-z,--zsh"`
-	Verbose bool `arg:"-v,--verbose"`
-}
-
 func main() {
-	arg.MustParse(&args)
-
-	logging.SetVerbose(args.Verbose)
-
-	logging.Error("hello")
-
-	if args.Bash {
+	if args.Args.Bash {
 		fmt.Println(paths.BashFormatPath())
 		fmt.Println(paths.BashFormatManPath())
-	} else if args.ZSH {
+	} else if args.Args.ZSH {
 		fmt.Println(paths.ZshFormatPath())
 		fmt.Println(paths.ZshFormatManPath())
-	} else if args.CSH {
+	} else if args.Args.CSH {
 		fmt.Println(paths.CshFormatPath())
 		fmt.Println(paths.CshFormatManPath())
 	} else {

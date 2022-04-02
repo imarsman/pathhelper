@@ -2,12 +2,13 @@ package paths
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/imarsman/pathhelper/cmd/logging"
 )
 
 var configPaths *pathSet
@@ -50,6 +51,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 func (ps *pathSet) populate() (err error) {
 	pathsInDir, err := filesInDir(ps.userDir)
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 	for _, p := range pathsInDir {
@@ -68,6 +70,7 @@ func (ps *pathSet) populate() (err error) {
 
 	pathsInDir, err = filesInDir(ps.systemDir)
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 	for _, p := range pathsInDir {
@@ -82,9 +85,8 @@ func (ps *pathSet) populate() (err error) {
 }
 
 func verifyPath(path string) (err error) {
-	if _, err = os.Stat(path); err == nil {
-		return
-	} else if errors.Is(err, os.ErrNotExist) {
+	if _, err = os.Stat(path); err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 
@@ -96,6 +98,7 @@ func pathsFromFile(file string) (lines []string) {
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
@@ -110,6 +113,7 @@ func pathsFromFile(file string) (lines []string) {
 	}
 	err = scanner.Err()
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 
@@ -119,6 +123,7 @@ func pathsFromFile(file string) (lines []string) {
 func cleanDir(path string) (cleanDir string) {
 	var homeDir, err = os.UserHomeDir()
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 
@@ -135,6 +140,7 @@ func cleanDir(path string) (cleanDir string) {
 func filesInDir(basePath string) (paths []string, err error) {
 	files, err := ioutil.ReadDir(basePath)
 	if err != nil {
+		logging.Logger.Println(err)
 		return
 	}
 
@@ -143,6 +149,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 			newPath := filepath.Join(basePath, file.Name())
 			err = verifyPath(newPath)
 			if err != nil {
+				logging.Logger.Println(err)
 				continue
 			}
 			paths = append(paths, newPath)
