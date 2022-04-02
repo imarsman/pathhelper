@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/imarsman/pathhelper/cmd/logging"
 )
@@ -72,11 +73,25 @@ func VerifyPath(path string) (err error) {
 	return
 }
 
+var wg sync.WaitGroup
+
 // populate get paths in the order of system file, system dir, then user dir
 // placing paths in front of system paths could be a security risk if the same
 // named executable is in a part of the filesystem writeable by the user.
 func (ps *pathSet) populate() (err error) {
-	var c = make(chan (string), 1000)
+	var c = make(chan (string))
+
+	go func() {
+		// wg.Add(1)
+		for {
+			path, ok := <-c
+			if !ok {
+				// fmt.Println(ok)
+				break
+			}
+			ps.paths = append(ps.paths, path)
+		}
+	}()
 
 	logging.Info.Println("evaluating", ps.systemPath)
 
@@ -89,11 +104,12 @@ func (ps *pathSet) populate() (err error) {
 	logging.Info.Println("evaluating", ps.userDir)
 	addPathsFromDir(ps.userDir, c)
 
+	wg.Wait()
 	close(c)
 
-	for line := range c {
-		ps.paths = append(ps.paths, line)
-	}
+	// for line := range c {
+	// 	ps.paths = append(ps.paths, line)
+	// }
 
 	return
 }
@@ -114,6 +130,8 @@ func addPathsFromDir(path string, c chan (string)) (lines []string) {
 
 // addPathsFromFile get valid paths from a file
 func addPathsFromFile(file string, c chan (string)) {
+	wg.Add(1)
+	defer wg.Done()
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {

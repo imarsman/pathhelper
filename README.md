@@ -1,7 +1,7 @@
 # pathhelper
 
 Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
-proper order and did checking of paths. The flow of the program is linear so the use of channels and things like that
+proper order and did checking of paths.
 is be overkill.
 
 I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
