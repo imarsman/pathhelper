@@ -78,13 +78,14 @@ Here is the help output for `pathhelper`
 
 ```
 $ pathhelper -h
-Usage: pathhelper [--bash] [--zsh] [--csh] [--verbose] [--init]
+Usage: pathhelper [--bash] [--zsh] [--csh] [--verbose] [--trace] [--init]
 
 Options:
   --bash, -s             get bash format path settings
   --zsh, -z              get zsh format path settings
   --csh, -c              get csh format path settings
   --verbose, -v          display issues as paths evaluated
+  --trace, -t            display very detailed activity
   --init, -i             check and build user path dirs if necessary
   --help, -h             display this help and exit
 ```
