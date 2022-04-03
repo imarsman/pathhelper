@@ -52,6 +52,7 @@ var configPaths *pathSet
 var configManPaths *pathSet
 
 func init() {
+	// Instantiate and populate - we can do this because the program runs once
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
 	configManPaths = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
