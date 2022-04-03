@@ -16,8 +16,6 @@ import (
 var configPaths *pathSet
 var configManPaths *pathSet
 
-// var wg sync.WaitGroup
-
 const (
 	systemPathFile    = "/etc/paths"
 	systemPathDir     = "/etc/paths.d"
