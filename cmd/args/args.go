@@ -23,10 +23,11 @@ func init() {
 
 // Args args used in the app. Public for use in logging package.
 var Args struct {
-	Bash    bool `arg:"-s,--bash" help:"get bash format path settings"`
-	ZSH     bool `arg:"-z,--zsh" help:"get zsh format path settings"`
-	CSH     bool `arg:"-c,--csh" help:"get csh format path settings"`
-	Verbose bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
-	Trace   bool `arg:"-t,--trace" help:"display very detailed activity"`
-	Init    bool `arg:"-i,--init" help:"check and build user path dirs if necessary"`
+	Bash      bool `arg:"-s,--bash" help:"get bash format path settings"`
+	ZSH       bool `arg:"-z,--zsh" help:"get zsh format path settings"`
+	CSH       bool `arg:"-c,--csh" help:"get csh format path settings"`
+	Verbose   bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
+	Trace     bool `arg:"-t,--trace" help:"display very detailed activity"`
+	Init      bool `arg:"-i,--init" help:"check and build user path dirs if necessary"`
+	UserFirst bool `arg:"-u,--user-first" help:"put user directories first"`
 }

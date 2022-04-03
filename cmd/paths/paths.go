@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/imarsman/pathhelper/cmd/args"
 	"github.com/imarsman/pathhelper/cmd/logging"
 )
 
@@ -179,6 +180,12 @@ func (ps *pathSet) populate() (err error) {
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
 
+	if args.Args.UserFirst {
+		// Get user paths.d entries
+		logging.Info.Println("evaluating", ps.userDir)
+		ps.addPathsFromDir(ps.userDir)
+	}
+
 	// Get system path file lines
 	logging.Info.Println("evaluating", ps.systemPath)
 	ps.addPathsFromFile(ps.systemPath)
@@ -187,9 +194,11 @@ func (ps *pathSet) populate() (err error) {
 	logging.Info.Println("evaluating", ps.systemDir)
 	ps.addPathsFromDir(ps.systemDir)
 
-	// Get user paths.d entries
-	logging.Info.Println("evaluating", ps.userDir)
-	ps.addPathsFromDir(ps.userDir)
+	if !args.Args.UserFirst {
+		// Get user paths.d entries
+		logging.Info.Println("evaluating", ps.userDir)
+		ps.addPathsFromDir(ps.userDir)
+	}
 
 	return
 }

@@ -74,13 +74,16 @@ Note that in both `bash` and `zsh` there are several files that are run at the s
 this is `bash_profile` and for `zsh` this is `.zshprofile`. Things like homebrew install a line to `~/.zprofile` that
 runs `eval $(/opt/homebrew/bin/brew shellenv)`. This adds homebrew dirs to the path.
 
+If desired, user directories can be put first using the `-u` flag. This could be to allow overriding of system commands.
+This is essentially what homebrew does with its invocation (`eval $(/opt/homebrew/bin/brew shellenv)`).
+
 ## Usage
 
 Here is the help output for `pathhelper`
 
 ```
 $ pathhelper -h
-Usage: pathhelper [--bash] [--zsh] [--csh] [--verbose] [--trace] [--init]
+Usage: pathhelper [--bash] [--zsh] [--csh] [--verbose] [--trace] [--init] [--user-first]
 
 Options:
   --bash, -s             get bash format path settings
@@ -89,6 +92,7 @@ Options:
   --verbose, -v          display issues as paths evaluated
   --trace, -t            display very detailed activity
   --init, -i             check and build user path dirs if necessary
+  --user-first, -u       put user directories first
   --help, -h             display this help and exit
 ```
 
