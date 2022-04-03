@@ -19,17 +19,17 @@ var configManPaths *pathSet
 type pathType string
 
 const (
-	tilde             = `~`
-	hash              = `#`
-	pathPath pathType = `PATH`
-	manPath  pathType = `MANPATH`
+	tilde                    = `~`
+	hash                     = `#`
+	pathTypePath    pathType = `PATH`
+	pathTypeManPath pathType = `MANPATH`
 
-	systemPathFile    = "/etc/paths"
-	systemPathDir     = "/etc/paths.d"
-	userPathDir       = "~/.config/pathhelper/paths.d"
-	systemManPathFile = "/etc/manpaths"
-	systemManPathDir  = "/etc/manpaths.d"
-	userManPathDir    = "~/.config/pathhelper/manpaths.d"
+	systemPathFile    = `/etc/paths`
+	systemPathDir     = `/etc/paths.d`
+	userPathDir       = `~/.config/pathhelper/paths.d`
+	systemManPathFile = `/etc/manpaths`
+	systemManPathDir  = `/etc/manpaths.d`
+	userManPathDir    = `~/.config/pathhelper/manpaths.d`
 )
 
 type pathSet struct {
@@ -52,8 +52,8 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 }
 
 func init() {
-	configPaths = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-	configManPaths = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
+	configManPaths = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	configPaths.populate()
 	configManPaths.populate()
