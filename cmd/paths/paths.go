@@ -192,7 +192,9 @@ func (ps *pathSet) populate() (err error) {
 		logging.Info.Println(strings.Repeat("-", repeat))
 	}
 
-	logging.Info.Println(strings.Repeat("-", repeat))
+	if ps.kind != pathTypeManPath {
+		logging.Info.Println(strings.Repeat("-", repeat))
+	}
 	t1 := time.Now()
 	logging.Info.Printf("processing %s", ps.systemPath)
 	// Get system path file lines
