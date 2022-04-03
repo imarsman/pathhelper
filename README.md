@@ -1,7 +1,8 @@
 # pathhelper
 
 Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
-proper order and did checking of paths. The code is iterative with no goroutines or channels.
+proper order and did checking of paths. The code is iterative with no goroutines or channels since the paths need to be
+read in a predictable and repeatable order.
 
 For any `zsh` specific examples in this README there are straightforward `bash` and `csh` equivalents.
 
@@ -48,7 +49,6 @@ if [ -x ~/bin/pathhelper ]; then
 elif [ -x /usr/libexec/path_helper ]; then
     echo "using fallback path building"
     eval $(/usr/libexec/path_helper -s)
-    export PATH
 fi
 
 # Just in case use system path_helper if things went wrong
