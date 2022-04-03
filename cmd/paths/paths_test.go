@@ -1,7 +1,6 @@
 package paths
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -25,8 +24,8 @@ func TestPaths(t *testing.T) {
 	err = cmp.populate()
 	is.NoErr(err)
 
-	var cpStr = strings.Join(cp.paths, ":")
-	var cmpStr = strings.Join(cmp.paths, ":")
+	var cpStr = cp.zshFormat()
+	var cmpStr = cmp.zshFormat()
 
 	t1 := time.Now()
 	runs := 1000
@@ -39,8 +38,8 @@ func TestPaths(t *testing.T) {
 		err = cmp.populate()
 		is.NoErr(err)
 
-		var cpLoopStr = strings.Join(cp.paths, ":")
-		var cmpLoopStr = strings.Join(cmp.paths, ":")
+		var cpLoopStr = cp.zshFormat()
+		var cmpLoopStr = cmp.zshFormat()
 
 		if cpStr != cpLoopStr || cmpStr != cmpLoopStr {
 			t.Log("unequal on", i)
@@ -58,8 +57,8 @@ func TestPaths(t *testing.T) {
 	total := float64(time.Since(t1).Milliseconds())
 	t.Logf("total ms to run %d times %.2f ms", runs, total)
 	t.Logf("average time in ms to do a load of paths and manpaths %v", total/float64(runs))
-	t.Log(cp.paths)
-	t.Log(cmp.paths)
+	t.Log(cp.zshFormat())
+	t.Log(cmp.zshFormat())
 }
 
 // go test -benchmem -bench=.
