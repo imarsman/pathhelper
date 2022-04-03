@@ -41,6 +41,7 @@ func TestPaths(t *testing.T) {
 		var cpLoopStr = cp.zshFormat()
 		var cmpLoopStr = cmp.zshFormat()
 
+		// Check for inconsistent results which would indicate a failure to produce identical results each time
 		if cpStr != cpLoopStr || cmpStr != cmpLoopStr {
 			t.Log("unequal on", i)
 			t.Log("cp", cpStr)
@@ -54,6 +55,7 @@ func TestPaths(t *testing.T) {
 		is.Equal(cmpStr, cmpLoopStr)
 
 	}
+
 	total := float64(time.Since(t1).Milliseconds())
 	t.Logf("total ms to run %d times %.2f ms", runs, total)
 	t.Logf("average time in ms to do a load of paths and manpaths %v", total/float64(runs))
@@ -61,18 +63,19 @@ func TestPaths(t *testing.T) {
 	t.Log(cmp.zshFormat())
 }
 
+// BenchmarkPathLoad do benchmark of path load - also helps check for concurrency issues
 // go test -benchmem -bench=.
-// 0.465517 ms per op
+// 0.432291 ms per op
 func BenchmarkPathLoad(b *testing.B) {
 	is := is.New(b)
 
 	var cp *pathSet
 	var cmp *pathSet
 
-	for i := 0; i < b.N; i++ {
-		cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-		cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+	cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+	cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
 
+	for i := 0; i < b.N; i++ {
 		err := cp.populate()
 		is.NoErr(err)
 
