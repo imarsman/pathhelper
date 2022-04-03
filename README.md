@@ -119,3 +119,17 @@ INFO checking /opt/X11/share/man
 INFO checking /Library/TeX/Distributions/.DefaultTeX/Contents/Man
 INFO evaluationg /Users/ian/.config/pathhelper/manpaths.d
 ```
+
+The original `path_helper` is about 200 lines of code. This project's code is
+
+```
+$ gocloc cmd README.md
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Go                               4             62             35            290
+Markdown                         1             21              0            100
+-------------------------------------------------------------------------------
+TOTAL                            5             83             35            390
+-------------------------------------------------------------------------------
+```
