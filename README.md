@@ -37,23 +37,35 @@ When looking for paths in files, each path encountered is checked to ensure it e
 non-existent files files are ignonred. These invalid items are silently rejected but can be seen if the `-v` flag is
 used.
 
-Here is a sample setup in `.zshrc`.
+Here is a sample setup in `.zshrc` with an attempt at a failsafe if pathhelper fails.
 
 ```sh
 # Use pathhelper to get system paths plus user paths
-# This should fail over to using the system one so there will be some sort of path
 if [ -x ~/bin/pathhelper ]; then
     eval $(~/bin/pathhelper -z)
 elif [ -x /usr/libexec/path_helper ]; then
     echo "using fallback path building"
     eval $(/usr/libexec/path_helper -s)
-    path +=('/opt/homebrew/bin' '~/bin' '/Users/ian/.ops/bin')
     export PATH
 fi
+
+# Just in case use system path_helper if things went wrong
+if [ "$PATH" = "" ]; then
+    if [ -x /usr/libexec/path_helper ]; then
+        eval `/usr/libexec/path_helper -s`
+    fi
+fi
 ```
+## Notes
 
 Paths made as a result of a call in `.zshrc` must be added to the main `PATH` separately. If you put them in a path file
 the entry will be rejected as it would not evaluate to a valid path.
+
+Note that in both `bash` and `zsh` there are several files that are run at the start of a new terminal session. For `bash`
+this is `bash_profile` and for `zsh` this is `.zshprofile`. Things like homebrew install a line to `~/.zprofile` that
+runs `eval $(/opt/homebrew/bin/brew shellenv)`. This adds homebrew dirs to the path.
+
+## Usage
 
 Here is the help output for `pathhelper`
 
