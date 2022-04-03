@@ -15,8 +15,8 @@ func TestPaths(t *testing.T) {
 	var cp *pathSet
 	var cmp *pathSet
 
-	cp = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
-	cmp = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
+	cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+	cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	err := cp.populate()
 	is.NoErr(err)
@@ -30,8 +30,8 @@ func TestPaths(t *testing.T) {
 	t1 := time.Now()
 	runs := 1000
 	for i := 0; i < runs; i++ {
-		cp = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
-		cmp = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
+		cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+		cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 		err := cp.populate()
 		is.NoErr(err)
@@ -70,8 +70,9 @@ func BenchmarkPathLoad(b *testing.B) {
 	var cmp *pathSet
 
 	for i := 0; i < b.N; i++ {
-		cp = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
-		cmp = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
+		cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+		cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+
 		err := cp.populate()
 		is.NoErr(err)
 

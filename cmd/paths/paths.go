@@ -18,9 +18,18 @@ var configManPaths *pathSet
 
 // var wg sync.WaitGroup
 
+const (
+	systemPathFile    = "/etc/paths"
+	systemPathDir     = "/etc/paths.d"
+	userPathDir       = "~/.config/pathhelper/paths.d"
+	systemManPathFile = "/etc/manpaths"
+	systemManPathDir  = "/etc/manpaths.d"
+	userManPathDir    = "~/.config/pathhelper/manpaths.d"
+)
+
 func init() {
-	configPaths = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
-	configManPaths = newPathSet(manPath, "/etc/manpaths", "/etc/manpaths.d", "~/.config/pathhelper/manpaths.d")
+	configPaths = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+	configManPaths = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	configPaths.populate()
 	configManPaths.populate()
