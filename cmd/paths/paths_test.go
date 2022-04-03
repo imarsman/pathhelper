@@ -51,8 +51,8 @@ func TestPaths(t *testing.T) {
 			t.Fail()
 			break
 		}
-		// is.Equal(cpStr, cpLoopStr)
-		// is.Equal(cmpStr, cmpLoopStr)
+		is.Equal(cpStr, cpLoopStr)
+		is.Equal(cmpStr, cmpLoopStr)
 
 	}
 	total := float64(time.Since(t1).Milliseconds())
