@@ -183,25 +183,29 @@ func (ps *pathSet) populate() (err error) {
 	if args.Args.UserFirst {
 		// Get user paths.d entries
 		t1 := time.Now()
+		logging.Info.Printf("processing %s", ps.userDir)
 		ps.addPathsFromDir(ps.userDir)
-		logging.Info.Printf("evaluating %s in %v", ps.userDir, time.Since(t1).Milliseconds())
+		logging.Info.Printf("processing %s took %v", ps.userDir, time.Since(t1).Milliseconds())
 	}
 
 	t1 := time.Now()
+	logging.Info.Printf("processing %s", ps.systemPath)
 	// Get system path file lines
 	ps.addPathsFromFile(ps.systemPath)
-	logging.Info.Printf("evaluating %s in %v", ps.systemPath, time.Since(t1))
+	logging.Info.Printf("processing %s took %v", ps.systemPath, time.Since(t1))
 
 	t1 = time.Now()
+	logging.Info.Printf("processing %s", ps.systemDir)
 	// Get system paths.d file entries
 	ps.addPathsFromDir(ps.systemDir)
-	logging.Info.Printf("evaluating %s in %v", ps.systemDir, time.Since(t1))
+	logging.Info.Printf("processing %s took %v", ps.systemDir, time.Since(t1))
 
 	if !args.Args.UserFirst {
 		t1 = time.Now()
+		logging.Info.Printf("processing %s", ps.userDir)
 		// Get user paths.d entries
 		ps.addPathsFromDir(ps.userDir)
-		logging.Info.Printf("evaluating %s in %v", ps.userDir, time.Since(t1))
+		logging.Info.Printf("processing %s took %v", ps.userDir, time.Since(t1))
 	}
 
 	return
