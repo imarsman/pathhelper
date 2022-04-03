@@ -137,11 +137,13 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		return
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
+	t1 := time.Now()
+	logging.Trace.Println("evaluating", file)
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
 			logging.Info.Println("checking", file)
-			logging.Error.Printf("skipping %s", path)
+			logging.Error.Printf("skipping line in %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
 		path = cleanDir(path)
@@ -150,11 +152,10 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		if err != nil {
 			continue
 		}
-		logging.Trace.Println("waiting", path, time.Now().UnixMicro())
 		// This is the only place we append to the paths list
 		ps.paths = append(ps.paths, path)
-		logging.Trace.Println("done", path, time.Now().UnixMicro())
 	}
+	logging.Trace.Printf("done %s in %v", file, time.Since(t1))
 	err = scanner.Err()
 	if err != nil {
 		logging.Info.Println(err)
