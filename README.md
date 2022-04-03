@@ -1,8 +1,8 @@
 # pathhelper
 
 Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
-proper order and did checking of paths.
-is be overkill.
+proper order and did checking of paths. I used a channel for fun to gather lines in order but earlier code was purely
+iterative.
 
 I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
 `/usr/libexec/path_helper` binary runs on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop.
