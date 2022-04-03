@@ -136,6 +136,7 @@ func (ps *pathSet) addPathsFromDir(path string) {
 
 // addPathsFromFile get valid paths from a file
 func (ps *pathSet) addPathsFromFile(file string) {
+	logging.Info.Println("checking", file)
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -148,7 +149,6 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
-			logging.Info.Println("checking", file)
 			logging.Error.Printf("skipping line in %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
