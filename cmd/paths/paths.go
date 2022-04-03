@@ -9,12 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/imarsman/pathhelper/cmd/logging"
 )
 
 var configPaths *pathSet
 var configManPaths *pathSet
+var wg sync.WaitGroup
 
 func init() {
 	configPaths = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
@@ -73,47 +75,7 @@ func VerifyPath(path string) (err error) {
 	return
 }
 
-var wg sync.WaitGroup
-
-// populate get paths in the order of system file, system dir, then user dir
-// placing paths in front of system paths could be a security risk if the same
-// named executable is in a part of the filesystem writeable by the user.
-func (ps *pathSet) populate() (err error) {
-	var c = make(chan (string))
-
-	go func() {
-		for {
-			path, ok := <-c
-			if !ok {
-				// fmt.Println(ok)
-				break
-			}
-			ps.paths = append(ps.paths, path)
-		}
-	}()
-
-	logging.Info.Println("evaluating", ps.systemPath)
-
-	// Get system path file lines
-	addPathsFromFile(ps.systemPath, c)
-
-	logging.Info.Println("evaluating", ps.systemDir)
-	addPathsFromDir(ps.systemDir, c)
-
-	logging.Info.Println("evaluating", ps.userDir)
-	addPathsFromDir(ps.userDir, c)
-
-	wg.Wait()
-	close(c)
-
-	// for line := range c {
-	// 	ps.paths = append(ps.paths, line)
-	// }
-
-	return
-}
-
-func addPathsFromDir(path string, c chan (string)) (lines []string) {
+func addPathsFromDir(c chan (string), path string) (lines []string) {
 	// Get system file paths
 	pathsInDir, err := filesInDir(path)
 	if err != nil {
@@ -121,14 +83,14 @@ func addPathsFromDir(path string, c chan (string)) (lines []string) {
 		return
 	}
 	for i := 0; i < len(pathsInDir); i++ {
-		addPathsFromFile(pathsInDir[i], c)
+		addPathsFromFile(c, pathsInDir[i])
 	}
 
 	return
 }
 
 // addPathsFromFile get valid paths from a file
-func addPathsFromFile(file string, c chan (string)) {
+func addPathsFromFile(c chan<- (string), file string) {
 	wg.Add(1)
 	defer wg.Done()
 	// The system path is a file with lines in it
@@ -141,6 +103,7 @@ func addPathsFromFile(file string, c chan (string)) {
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
+			logging.Error.Printf("skipping %s", path)
 			continue
 		}
 		path = cleanDir(path)
@@ -149,7 +112,9 @@ func addPathsFromFile(file string, c chan (string)) {
 		if err != nil {
 			continue
 		}
+		logging.Trace.Println("waiting", path, time.Now().UnixMicro())
 		c <- path
+		logging.Trace.Println("done", path, time.Now().UnixMicro())
 	}
 	err = scanner.Err()
 	if err != nil {
@@ -196,6 +161,46 @@ func filesInDir(basePath string) (paths []string, err error) {
 			paths = append(paths, newPath)
 		}
 	}
+
+	return
+}
+
+// populate get paths in the order of system file, system dir, then user dir
+// placing paths in front of system paths could be a security risk if the same
+// named executable is in a part of the filesystem writeable by the user.
+func (ps *pathSet) populate() (err error) {
+	// The channel is used as a means of sending ordered data.
+	// We intentionally do not want concurrency in channel add as we need to
+	// maintain the ordering of the path variable we are building.
+	var c = make(chan (string), 20)
+
+	// As long as the channel is open append new channel messages to the paths
+	// slice
+	go func() {
+		for {
+			path, ok := <-c
+			// stop if channel closed
+			if !ok {
+				break
+			}
+			ps.paths = append(ps.paths, path)
+		}
+	}()
+
+	logging.Info.Println("evaluating", ps.systemPath)
+
+	// Get system path file lines
+	addPathsFromFile(c, ps.systemPath)
+
+	logging.Info.Println("evaluating", ps.systemDir)
+	addPathsFromDir(c, ps.systemDir)
+
+	logging.Info.Println("evaluating", ps.userDir)
+	addPathsFromDir(c, ps.userDir)
+
+	// Wait for the waitgroup to be done.
+	wg.Wait()
+	close(c)
 
 	return
 }
