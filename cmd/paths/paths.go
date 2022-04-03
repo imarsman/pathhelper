@@ -180,32 +180,40 @@ func (ps *pathSet) populate() (err error) {
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
 
+	var repeat = 80
+
 	if args.Args.UserFirst {
+		logging.Info.Println(strings.Repeat("-", repeat))
 		// Get user paths.d entries
 		t1 := time.Now()
 		logging.Info.Printf("processing %s", ps.userDir)
 		ps.addPathsFromDir(ps.userDir)
 		logging.Info.Printf("processing %s took %v", ps.userDir, time.Since(t1).Milliseconds())
+		logging.Info.Println(strings.Repeat("-", repeat))
 	}
 
+	logging.Info.Println(strings.Repeat("-", repeat))
 	t1 := time.Now()
 	logging.Info.Printf("processing %s", ps.systemPath)
 	// Get system path file lines
 	ps.addPathsFromFile(ps.systemPath)
 	logging.Info.Printf("processing %s took %v", ps.systemPath, time.Since(t1))
 
+	logging.Info.Println(strings.Repeat("-", repeat))
 	t1 = time.Now()
 	logging.Info.Printf("processing %s", ps.systemDir)
 	// Get system paths.d file entries
 	ps.addPathsFromDir(ps.systemDir)
 	logging.Info.Printf("processing %s took %v", ps.systemDir, time.Since(t1))
 
+	logging.Info.Println(strings.Repeat("-", repeat))
 	if !args.Args.UserFirst {
 		t1 = time.Now()
 		logging.Info.Printf("processing %s", ps.userDir)
 		// Get user paths.d entries
 		ps.addPathsFromDir(ps.userDir)
 		logging.Info.Printf("processing %s took %v", ps.userDir, time.Since(t1))
+		logging.Info.Println(strings.Repeat("-", repeat))
 	}
 
 	return
