@@ -182,22 +182,26 @@ func (ps *pathSet) populate() (err error) {
 
 	if args.Args.UserFirst {
 		// Get user paths.d entries
-		logging.Info.Println("evaluating", ps.userDir)
+		t1 := time.Now()
 		ps.addPathsFromDir(ps.userDir)
+		logging.Info.Printf("evaluating %s in %v", ps.userDir, time.Since(t1).Milliseconds())
 	}
 
+	t1 := time.Now()
 	// Get system path file lines
-	logging.Info.Println("evaluating", ps.systemPath)
 	ps.addPathsFromFile(ps.systemPath)
+	logging.Info.Printf("evaluating %s in %v", ps.systemPath, time.Since(t1))
 
+	t1 = time.Now()
 	// Get system paths.d file entries
-	logging.Info.Println("evaluating", ps.systemDir)
 	ps.addPathsFromDir(ps.systemDir)
+	logging.Info.Printf("evaluating %s in %v", ps.systemDir, time.Since(t1))
 
 	if !args.Args.UserFirst {
+		t1 = time.Now()
 		// Get user paths.d entries
-		logging.Info.Println("evaluating", ps.userDir)
 		ps.addPathsFromDir(ps.userDir)
+		logging.Info.Printf("evaluating %s in %v", ps.userDir, time.Since(t1))
 	}
 
 	return
