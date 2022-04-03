@@ -3,6 +3,8 @@
 Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
 proper order and did checking of paths. The code is iterative with no goroutines or channels.
 
+For any `zsh` specific examples in this README there are straightforward `bash` and `csh` equivalents.
+
 I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
 `/usr/libexec/path_helper` binary runs on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop.
 Given that the load time for my `zsh` environment is 500 msec this is at the moment acceptable. `path_helper` is
