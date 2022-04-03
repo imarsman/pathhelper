@@ -7,6 +7,8 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
+// This is put in a separate package to prevent circular dependencies between main and the logging package.
+
 func init() {
 	// Deal with go-args issue with testing
 	testing := strings.HasSuffix(os.Args[0], ".test")
