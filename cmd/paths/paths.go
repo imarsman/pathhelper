@@ -145,7 +145,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	}
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
 	t1 := time.Now()
-	logging.Trace.Println(fmt.Sprintf("verify %s", file))
+	logging.Trace.Printf("verify %s\n", file)
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
