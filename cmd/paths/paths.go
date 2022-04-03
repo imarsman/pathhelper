@@ -13,9 +13,6 @@ import (
 	"github.com/imarsman/pathhelper/cmd/logging"
 )
 
-var configPaths *pathSet
-var configManPaths *pathSet
-
 type pathType string
 
 const (
@@ -50,6 +47,9 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 
 	return
 }
+
+var configPaths *pathSet
+var configManPaths *pathSet
 
 func init() {
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
