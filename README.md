@@ -1,8 +1,7 @@
 # pathhelper
 
 Helper for building a path for MacOS. Most of my effort in writing this has been tied to making sure I did things in the
-proper order and did checking of paths. I used a channel for fun to gather lines in order but earlier code was purely
-iterative.
+proper order and did checking of paths. The code is iterative with no goroutines or channels.
 
 I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
 `/usr/libexec/path_helper` binary runs on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop.
@@ -27,8 +26,9 @@ exiftool
 go
 ```
 
-Looking at the several off the above entries, it can be seen that some installers such as the installer for Golang add
-to this list. This likely makes for many fewer complaints that "go can't be found".
+Looking at several of the above entries, it can be seen that some installers such as the installer for Golang add
+to this list. This likely makes for many fewer complaints that "go can't be found". Homebrew takes a different approach
+and adds a call with an exact path to the end of `.zprofile` that prepends to the path.
 
 The convention is that there will be one path per line in the main `paths` and `manpaths` and in files in the `paths.d`
 and `manpaths.d` directories. More than one line in files is permitted, and lines started with `#` are ignored.
@@ -60,7 +60,13 @@ fi
 ## Notes
 
 Paths made as a result of a call in `.zshrc` must be added to the main `PATH` separately. If you put them in a path file
-the entry will be rejected as it would not evaluate to a valid path.
+the entry will be rejected as it would not evaluate to a valid path. Here is an example.
+
+```sh
+export GOPATH="$(go env GOPATH)"
+path+=("$GOPATH/bin")
+export PATH
+```
 
 Note that in both `bash` and `zsh` there are several files that are run at the start of a new terminal session. For `bash`
 this is `bash_profile` and for `zsh` this is `.zshprofile`. Things like homebrew install a line to `~/.zprofile` that
