@@ -23,11 +23,11 @@ func init() {
 		Error = log.New(io.Discard, "ERROR ", log.LUTC)
 
 		if args.Args.Verbose {
-			Info = log.New(os.Stderr, "INFO ", log.LUTC)
-			Error = log.New(os.Stderr, "ERROR ", log.LUTC)
+			Info = log.New(os.Stdout, "INFO ", log.LUTC)
+			Error = log.New(os.Stdout, "ERROR ", log.LUTC)
 		}
 		if args.Args.Trace {
-			Trace = log.New(os.Stderr, "TRACE ", log.LUTC)
+			Trace = log.New(os.Stdout, "TRACE ", log.LUTC)
 		}
 	})
 }
