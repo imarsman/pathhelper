@@ -16,6 +16,8 @@ import (
 var configPaths *pathSet
 var configManPaths *pathSet
 
+type pathType string
+
 const (
 	tilde             = `~`
 	hash              = `#`
@@ -29,16 +31,6 @@ const (
 	systemManPathDir  = "/etc/manpaths.d"
 	userManPathDir    = "~/.config/pathhelper/manpaths.d"
 )
-
-func init() {
-	configPaths = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-	configManPaths = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
-
-	configPaths.populate()
-	configManPaths.populate()
-}
-
-type pathType string
 
 type pathSet struct {
 	kind       pathType
@@ -57,6 +49,14 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.userDir = cleanDir(ps.userDir)
 
 	return
+}
+
+func init() {
+	configPaths = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
+	configManPaths = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+
+	configPaths.populate()
+	configManPaths.populate()
 }
 
 // VerifyPath verify a path
