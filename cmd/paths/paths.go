@@ -17,6 +17,11 @@ var configPaths *pathSet
 var configManPaths *pathSet
 
 const (
+	tilde             = `~`
+	hash              = `#`
+	pathPath pathType = `PATH`
+	manPath  pathType = `MANPATH`
+
 	systemPathFile    = "/etc/paths"
 	systemPathDir     = "/etc/paths.d"
 	userPathDir       = "~/.config/pathhelper/paths.d"
@@ -34,13 +39,6 @@ func init() {
 }
 
 type pathType string
-
-const (
-	tilde             = `~`
-	hash              = `#`
-	pathPath pathType = `PATH`
-	manPath  pathType = `MANPATH`
-)
 
 type pathSet struct {
 	kind       pathType
