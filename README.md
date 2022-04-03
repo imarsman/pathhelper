@@ -120,7 +120,7 @@ INFO checking /Library/TeX/Distributions/.DefaultTeX/Contents/Man
 INFO evaluationg /Users/ian/.config/pathhelper/manpaths.d
 ```
 
-The original `path_helper` is about 200 lines of code. This project's code is
+The original `path_helper` is about 182 lines of code. This project's code is
 
 ```
 $ gocloc cmd README.md
