@@ -1,9 +1,22 @@
 package args
 
-import "github.com/alexflint/go-arg"
+import (
+	"os"
+	"strings"
+
+	"github.com/alexflint/go-arg"
+)
 
 func init() {
-	arg.MustParse(&Args)
+	// Deal with go-args issue with testing
+	testing := strings.HasSuffix(os.Args[0], ".test")
+	if testing {
+		p, _ := arg.NewParser(arg.Config{Program: "test"}, &Args)
+		settings := []string{"--settings=test"}
+		p.Parse(settings)
+	} else {
+		arg.MustParse(&Args)
+	}
 }
 
 // Args args used in the app. Public for use in logging package.

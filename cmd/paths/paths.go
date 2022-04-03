@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/imarsman/pathhelper/cmd/logging"
@@ -16,7 +15,8 @@ import (
 
 var configPaths *pathSet
 var configManPaths *pathSet
-var wg sync.WaitGroup
+
+// var wg sync.WaitGroup
 
 func init() {
 	configPaths = newPathSet(pathPath, "/etc/paths", "/etc/paths.d", "~/.config/pathhelper/paths.d")
@@ -41,6 +41,8 @@ type pathSet struct {
 	systemDir  string
 	userDir    string
 	paths      []string
+	// wg         sync.WaitGroup
+	// c          chan (string)
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -50,6 +52,8 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.systemDir = systemDir
 	ps.userDir = userDir
 	ps.userDir = cleanDir(ps.userDir)
+	// ps.wg = sync.WaitGroup{}
+	// ps.c = make(chan string, 20)
 
 	return
 }
@@ -70,56 +74,6 @@ func VerifyPath(path string) (err error) {
 			return
 		}
 
-	}
-
-	return
-}
-
-func addPathsFromDir(pathChan chan (string), path string) (lines []string) {
-	// Get system file paths
-	pathsInDir, err := filesInDir(path)
-	if err != nil {
-		logging.Info.Println(err)
-		return
-	}
-	for i := 0; i < len(pathsInDir); i++ {
-		addPathsFromFile(pathChan, pathsInDir[i])
-	}
-
-	return
-}
-
-// addPathsFromFile get valid paths from a file
-func addPathsFromFile(pathChan chan<- string, file string) {
-	wg.Add(1)
-	defer wg.Done()
-	// The system path is a file with lines in it
-	bytes, err := ioutil.ReadFile(file)
-	if err != nil {
-		logging.Info.Println(err)
-		return
-	}
-	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
-	for scanner.Scan() {
-		path := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(path, hash) {
-			logging.Error.Printf("skipping %s", path)
-			continue
-		}
-		path = cleanDir(path)
-		logging.Info.Println("checking", path)
-		err = VerifyPath(path)
-		if err != nil {
-			continue
-		}
-		logging.Trace.Println("waiting", path, time.Now().UnixMicro())
-		pathChan <- path
-		logging.Trace.Println("done", path, time.Now().UnixMicro())
-	}
-	err = scanner.Err()
-	if err != nil {
-		logging.Info.Println(err)
-		return
 	}
 
 	return
@@ -165,6 +119,57 @@ func filesInDir(basePath string) (paths []string, err error) {
 	return
 }
 
+func (ps *pathSet) addPathsFromDir(path string) {
+	// Get system file paths
+	pathsInDir, err := filesInDir(path)
+	if err != nil {
+		logging.Info.Println(err)
+		return
+	}
+	for i := 0; i < len(pathsInDir); i++ {
+		ps.addPathsFromFile(pathsInDir[i])
+	}
+
+	return
+}
+
+// addPathsFromFile get valid paths from a file
+func (ps *pathSet) addPathsFromFile(file string) {
+	// ps.wg.Add(1)
+	// defer ps.wg.Done()
+
+	// The system path is a file with lines in it
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		logging.Info.Println(err)
+		return
+	}
+	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
+	for scanner.Scan() {
+		path := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(path, hash) {
+			logging.Error.Printf("skipping %s", path)
+			continue
+		}
+		path = cleanDir(path)
+		logging.Info.Println("checking", path)
+		err = VerifyPath(path)
+		if err != nil {
+			continue
+		}
+		logging.Trace.Println("waiting", path, time.Now().UnixMicro())
+		ps.paths = append(ps.paths, path)
+		logging.Trace.Println("done", path, time.Now().UnixMicro())
+	}
+	err = scanner.Err()
+	if err != nil {
+		logging.Info.Println(err)
+		return
+	}
+
+	return
+}
+
 // populate get paths in the order of system file, system dir, then user dir
 // placing paths in front of system paths could be a security risk if the same
 // named executable is in a part of the filesystem writeable by the user.
@@ -172,35 +177,37 @@ func (ps *pathSet) populate() (err error) {
 	// The channel is used as a means of sending ordered data.
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
-	var pathChan = make(chan (string), 20)
+	// var pathChan = make(chan (string), 20)
 
 	// As long as the channel is open append new channel messages to the paths
 	// slice
-	go func() {
-		for {
-			path, ok := <-pathChan
-			// stop if channel closed
-			if !ok {
-				break
-			}
-			ps.paths = append(ps.paths, path)
-		}
-	}()
 
 	logging.Info.Println("evaluating", ps.systemPath)
 
 	// Get system path file lines
-	addPathsFromFile(pathChan, ps.systemPath)
+
+	ps.addPathsFromFile(ps.systemPath)
 
 	logging.Info.Println("evaluating", ps.systemDir)
-	addPathsFromDir(pathChan, ps.systemDir)
+	ps.addPathsFromDir(ps.systemDir)
 
 	logging.Info.Println("evaluating", ps.userDir)
-	addPathsFromDir(pathChan, ps.userDir)
+	ps.addPathsFromDir(ps.userDir)
+
+	// go func() {
+	// 	for {
+	// 		path, ok := <-ps.c
+	// 		// stop if channel closed
+	// 		if !ok {
+	// 			break
+	// 		}
+	// 		ps.paths = append(ps.paths, path)
+	// 	}
+	// }()
 
 	// Wait for the waitgroup to be done.
-	wg.Wait()
-	close(pathChan)
+	// ps.wg.Wait()
+	// close(ps.c)
 
 	return
 }
