@@ -41,8 +41,6 @@ type pathSet struct {
 	systemDir  string
 	userDir    string
 	paths      []string
-	// wg         sync.WaitGroup
-	// c          chan (string)
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -52,8 +50,6 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.systemDir = systemDir
 	ps.userDir = userDir
 	ps.userDir = cleanDir(ps.userDir)
-	// ps.wg = sync.WaitGroup{}
-	// ps.c = make(chan string, 20)
 
 	return
 }
@@ -100,7 +96,6 @@ func filesInDir(basePath string) (paths []string, err error) {
 	files, err := ioutil.ReadDir(basePath)
 	if err != nil {
 		logging.Info.Println(err)
-		logging.Info.Println(err)
 		return
 	}
 
@@ -135,9 +130,6 @@ func (ps *pathSet) addPathsFromDir(path string) {
 
 // addPathsFromFile get valid paths from a file
 func (ps *pathSet) addPathsFromFile(file string) {
-	// ps.wg.Add(1)
-	// defer ps.wg.Done()
-
 	// The system path is a file with lines in it
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -148,6 +140,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
+			logging.Info.Println("checking", file)
 			logging.Error.Printf("skipping %s", path)
 			continue
 		}
@@ -158,6 +151,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			continue
 		}
 		logging.Trace.Println("waiting", path, time.Now().UnixMicro())
+		// This is the only place we append to the paths list
 		ps.paths = append(ps.paths, path)
 		logging.Trace.Println("done", path, time.Now().UnixMicro())
 	}
@@ -177,37 +171,18 @@ func (ps *pathSet) populate() (err error) {
 	// The channel is used as a means of sending ordered data.
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
-	// var pathChan = make(chan (string), 20)
-
-	// As long as the channel is open append new channel messages to the paths
-	// slice
-
-	logging.Info.Println("evaluating", ps.systemPath)
 
 	// Get system path file lines
-
+	logging.Info.Println("evaluating", ps.systemPath)
 	ps.addPathsFromFile(ps.systemPath)
 
+	// Get system paths.d file entries
 	logging.Info.Println("evaluating", ps.systemDir)
 	ps.addPathsFromDir(ps.systemDir)
 
+	// Get user paths.d entries
 	logging.Info.Println("evaluating", ps.userDir)
 	ps.addPathsFromDir(ps.userDir)
-
-	// go func() {
-	// 	for {
-	// 		path, ok := <-ps.c
-	// 		// stop if channel closed
-	// 		if !ok {
-	// 			break
-	// 		}
-	// 		ps.paths = append(ps.paths, path)
-	// 	}
-	// }()
-
-	// Wait for the waitgroup to be done.
-	// ps.wg.Wait()
-	// close(ps.c)
 
 	return
 }
