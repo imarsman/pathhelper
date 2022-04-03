@@ -56,6 +56,7 @@ if [ "$PATH" = "" ]; then
     fi
 fi
 ```
+
 ## Notes
 
 Paths made as a result of a call in `.zshrc` must be added to the main `PATH` separately. If you put them in a path file
