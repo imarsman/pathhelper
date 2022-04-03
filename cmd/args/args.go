@@ -12,5 +12,6 @@ var Args struct {
 	ZSH     bool `arg:"-z,--zsh" help:"get zsh format path settings"`
 	CSH     bool `arg:"-c,--csh" help:"get csh format path settings"`
 	Verbose bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
+	Trace   bool `arg:"-t,--trace" help:"display very detailed activity"`
 	Init    bool `arg:"-i,--init" help:"check and build user path dirs if necessary"`
 }
