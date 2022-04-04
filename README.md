@@ -110,31 +110,57 @@ errors in the output in combination with the previous lines to track down invali
 
 ```
 $ pathhelper -z -v
-INFO evaluating /etc/paths
+INFO --------------------------------------------------------------------------------
+INFO processing /etc/paths
+INFO checking /etc/paths
 INFO checking /usr/local/bin
 INFO checking /usr/bin
 INFO checking /bin
 INFO checking /usr/sbin
 INFO checking /sbin
-INFO evaluating /etc/paths.d
+INFO processing /etc/paths took 706.334µs
+INFO --------------------------------------------------------------------------------
+INFO processing /etc/paths.d
+INFO checking /etc/paths.d/100-rvictl
 INFO checking /Library/Apple/usr/bin
+INFO checking /etc/paths.d/40-XQuartz
 INFO checking /opt/X11/bin
+INFO checking /etc/paths.d/TeX
 INFO checking /Library/TeX/texbin
+INFO checking /etc/paths.d/dotnet-cli-tools
 INFO checking /Users/ian/.dotnet/tools
 ERROR stat /Users/ian/.dotnet/tools: no such file or directory
+INFO checking /etc/paths.d/exiftool
 INFO checking /usr/local/bin
+INFO checking /etc/paths.d/go
 INFO checking /usr/local/go/bin
-INFO evaluationg /Users/ian/.config/pathhelper/paths.d
-INFO checking /opt/homebrew/bin
+INFO processing /etc/paths.d took 3.160583ms
+INFO --------------------------------------------------------------------------------
+INFO processing /Users/ian/.config/pathhelper/paths.d
+INFO checking /Users/ian/.config/pathhelper/paths.d/homebrew
+ERROR skipping line in homebrew "# Note that brew sets its paths in ~/.zprofile or ~/.bash_profile"
+INFO checking /Users/ian/.config/pathhelper/paths.d/localbin
 INFO checking /Users/ian/bin
+INFO checking /Users/ian/.config/pathhelper/paths.d/ops
 INFO checking /Users/ian/.ops/bin
-INFO evaluating /etc/manpaths
+INFO processing /Users/ian/.config/pathhelper/paths.d took 1.101458ms
+INFO --------------------------------------------------------------------------------
+INFO processing /etc/manpaths
+INFO checking /etc/manpaths
 INFO checking /usr/share/man
 INFO checking /usr/local/share/man
-INFO evaluating /etc/manpaths.d
+INFO processing /etc/manpaths took 147.375µs
+INFO --------------------------------------------------------------------------------
+INFO processing /etc/manpaths.d
+INFO checking /etc/manpaths.d/40-XQuartz
 INFO checking /opt/X11/share/man
+INFO checking /etc/manpaths.d/TeX
 INFO checking /Library/TeX/Distributions/.DefaultTeX/Contents/Man
-INFO evaluationg /Users/ian/.config/pathhelper/manpaths.d
+INFO processing /etc/manpaths.d took 980µs
+INFO --------------------------------------------------------------------------------
+INFO processing /Users/ian/.config/pathhelper/manpaths.d
+INFO processing /Users/ian/.config/pathhelper/manpaths.d took 270.75µs
+INFO --------------------------------------------------------------------------------
 ```
 
 The original `path_helper` is about 182 lines of code. This project's code is
