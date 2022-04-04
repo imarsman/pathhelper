@@ -137,11 +137,14 @@ func (ps *pathSet) addPathsFromDir(path string) {
 	return
 }
 
+// standardizePath for hashing purposes remove any slash at end, then remove all slashes, then lowercase
 func standardizePath(path string) string {
 	if strings.HasSuffix(path, `/`) {
 		path = strings.TrimRight(path, `/`)
 		path = path[:len(path)-1]
 	}
+	path = strings.ReplaceAll(path, `/`, ``)
+	path = strings.ToLower(path)
 
 	return path
 }
