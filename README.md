@@ -6,16 +6,20 @@ read in a predictable and repeatable order.
 
 For any `zsh` specific examples in this README there are straightforward `bash` and `csh` equivalents.
 
-I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. The
-`/usr/libexec/path_helper` binary runs on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop.
-Given that the load time for my `zsh` environment is 500 msec this is at the moment acceptable. `path_helper` is
-[written in C](https://opensource.apple.com/source/shell_cmds/shell_cmds-162/path_helper/path_helper.c.auto.html) and
-does not from what I can see do any validation of the paths found. Not checking for the existence of the directories
-pointed bo by the path elements found could partly explain its faster execution.
+I wrote this to better understand how the `PATH` and `MANPATH` variables are set in MacOS. I ended up learning a lot
+about how shell start up and how they define variables for a login session. The `/usr/libexec/path_helper` binary runs
+on my laptop in about 6 msec. pathhelper takes about 12 msec to run on my laptop. Given that the load time for my `zsh`
+environment is 500 msec this is at the moment acceptable. `path_helper` is [written in
+C](https://opensource.apple.com/source/shell_cmds/shell_cmds-162/path_helper/path_helper.c.auto.html) and does not from
+what I can see do any validation of the paths found. Not checking for the existence of the directories pointed bo by the
+path elements found could partly explain its faster execution.
 
 Linux distributions do not store system paths as lists of files in `/etc/paths`, `/etc/manpaths` or in `/etc/paths.d/`,
 or `/etc/manpaths.d`, so this would not really work to set the path in a `.zshrc` file. It would work as a user path
-setting tool but that is limited.
+setting tool but that is limited. In theory the system parts would gracefully fail in Linux but the user paths could be
+helpful to add to the `PATH` variable. The issue would be that one would have to mess around with the system path and
+that is not recommented. A modification of this would just give a list of additional path elements and leave it up to
+the user to append them to the main `PATH`.
 
 In addition to the work that `/usr/libexec/path_helper` does on MacOS `pathhelper` also looks in `~/.config/pathhelper/`
 for files in `paths.d` and `manpaths.d`. Here is the list of entries for `/etc/paths.d`
