@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/imarsman/pathhelper/cmd/args"
@@ -36,6 +37,7 @@ type pathSet struct {
 	systemDir  string
 	userDir    string
 	paths      []string
+	pathMap    sync.Map
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -135,6 +137,15 @@ func (ps *pathSet) addPathsFromDir(path string) {
 	return
 }
 
+func standardizePath(path string) string {
+	if strings.HasSuffix(path, `/`) {
+		path = strings.TrimRight(path, `/`)
+		path = path[:len(path)-1]
+	}
+
+	return path
+}
+
 // addPathsFromFile get valid paths from a file
 func (ps *pathSet) addPathsFromFile(file string) {
 	logging.Info.Println("checking", file)
@@ -150,7 +161,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
-			logging.Error.Printf("skipping line in %s \"%s\"", filepath.Base(file), path)
+			logging.Error.Printf("skipping line in file %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
 		path = cleanDir(path)
@@ -159,6 +170,16 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		if err != nil {
 			continue
 		}
+
+		// Avoid duplicates by using sync.Map to keep track of what has been found so far
+		standardizedPath := standardizePath(path)
+		_, ok := ps.pathMap.Load(standardizedPath)
+		if ok {
+			logging.Error.Printf("skipping duplicate path in file %s \"%s\"", filepath.Base(file), path)
+			continue
+		}
+		ps.pathMap.Store(standardizedPath, true)
+
 		// This is the only place we append to the paths list
 		ps.paths = append(ps.paths, path)
 	}
