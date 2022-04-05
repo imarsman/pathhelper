@@ -223,6 +223,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		// Avoid duplicates by using sync.Map to keep track of what has been found so far
 		// There is a penalty for using a sync.Map but concurrency is possible
 		standardizedPath := makeMapKey(path)
+
 		ps.mu.Lock()
 		_, ok := ps.pathMap[standardizedPath]
 		if ok {
