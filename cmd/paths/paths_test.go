@@ -15,8 +15,8 @@ func TestPaths(t *testing.T) {
 	var cp *pathSet
 	var cmp *pathSet
 
-	cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-	cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+	cp = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
+	cmp = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	err := cp.populate()
 	is.NoErr(err)
@@ -30,8 +30,8 @@ func TestPaths(t *testing.T) {
 	t1 := time.Now()
 	runs := 1000
 	for i := 0; i < runs; i++ {
-		cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-		cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+		cp = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
+		cmp = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 		err := cp.populate()
 		is.NoErr(err)
@@ -72,8 +72,8 @@ func BenchmarkPathLoad(b *testing.B) {
 	var cp *pathSet
 	var cmp *pathSet
 
-	cp = newPathSet(pathPath, systemPathFile, systemPathDir, userPathDir)
-	cmp = newPathSet(manPath, systemManPathFile, systemManPathDir, userManPathDir)
+	cp = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
+	cmp = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	for i := 0; i < b.N; i++ {
 		err := cp.populate()
