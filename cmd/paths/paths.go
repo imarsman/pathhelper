@@ -171,9 +171,9 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		// 3,600 ns in a test of 18 paths vs about 6000 for strings.Contains
 		// The path_helper C program does the checking as well
 
-		var sb strings.Builder
 		// Escape characters that can be bad for a shell to read in
-		// The output of this program is an export statement for a variable
+		// The output of this program is an export statement for a shell variable
+		var sb strings.Builder
 		for _, r := range path {
 			if r == '"' {
 				logging.Error.Printf("escaping \" character in file %s \"%s\"", filepath.Base(file), path)
