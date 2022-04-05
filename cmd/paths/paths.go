@@ -114,10 +114,13 @@ func filesInDir(basePath string) (paths []string, err error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			var newPath = filepath.Join(basePath, file.Name())
-			err = VerifyPath(newPath)
-			if err != nil {
-				logging.Info.Printf("can't read %s %v", newPath, err)
-				continue
+
+			if args.Args.Verify {
+				err = VerifyPath(newPath)
+				if err != nil {
+					logging.Info.Printf("can't read %s %v", newPath, err)
+					continue
+				}
 			}
 			paths = append(paths, newPath)
 		}
@@ -168,14 +171,16 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			continue
 		}
 		path = cleanDir(path)
-		logging.Info.Println("checking", path)
 
-		// Check to ensure path is valid
-		err = VerifyPath(path)
-		if err != nil {
-			continue
+		if args.Args.Verify {
+			logging.Info.Println("checking", path)
+
+			// Check to ensure path is valid
+			err = VerifyPath(path)
+			if err != nil {
+				continue
+			}
 		}
-
 		// Escape characters that can be bad for a shell to read in. This escaped value will be used for output. The
 		// output of this program is an export statement for a shell variable.
 		// Macos allows these characters in filenames and paths.
