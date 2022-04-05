@@ -175,6 +175,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 
 		// Escape characters that can be bad for a shell to read in. This escaped value will be used for output. The
 		// output of this program is an export statement for a shell variable.
+		// Macos allows these characters in filenames and paths.
 		var sb strings.Builder
 		var escaped = ""
 		for _, r := range path {
