@@ -38,6 +38,7 @@ type pathSet struct {
 	userDir    string
 	paths      []string
 	pathMap    sync.Map
+	// pathMap map[string]bool
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -47,6 +48,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.systemDir = systemDir
 	ps.userDir = userDir
 	ps.userDir = cleanDir(ps.userDir)
+	// ps.pathMap = make(map[string]bool)
 
 	return
 }
@@ -218,6 +220,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 
 		// Avoid duplicates by using sync.Map to keep track of what has been found so far
+		// There is a penalty for using a sync.Map but concurrency is possible
 		standardizedPath := makeMapKey(path)
 		_, ok := ps.pathMap.Load(standardizedPath)
 		if ok {
