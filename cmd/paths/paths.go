@@ -38,7 +38,6 @@ type pathSet struct {
 	userDir    string
 	paths      []string
 	pathMap    sync.Map
-	// pathMap map[string]bool
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -48,7 +47,6 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.systemDir = systemDir
 	ps.userDir = userDir
 	ps.userDir = cleanDir(ps.userDir)
-	// ps.pathMap = make(map[string]bool)
 
 	return
 }
@@ -227,7 +225,9 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			logging.Error.Printf("skipping duplicate path in file %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
-		ps.pathMap.Store(standardizedPath, true)
+
+		// It doesn't matter what we store. An empty struct consumes zero bytes.
+		ps.pathMap.Store(standardizedPath, struct{}{})
 
 		// Use the escaped version for the PATH if it has passed tests
 		if escaped != "" {
