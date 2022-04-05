@@ -137,12 +137,8 @@ func (ps *pathSet) addPathsFromDir(path string) {
 	return
 }
 
-// standardizePath for hashing purposes remove any slash at end, then remove all slashes, then lowercase
-func standardizePath(path string) string {
-	if strings.HasSuffix(path, `/`) {
-		path = strings.TrimRight(path, `/`)
-		path = path[:len(path)-1]
-	}
+// makeMapKey for hashing purposes remove all slashes all slashes, then lowercase
+func makeMapKey(path string) string {
 	path = strings.ReplaceAll(path, `/`, ``)
 	path = strings.ToLower(path)
 
@@ -169,13 +165,35 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 		path = cleanDir(path)
 		logging.Info.Println("checking", path)
+
+		// significantly faster than strings.Contain
+		// 3,600 ns in a test of 18 paths vs about 6000 for strings.Contains
+		for _, r := range path {
+			if r == '"' {
+				logging.Error.Printf("skipping path with \" character in file %s \"%s\"", filepath.Base(file), path)
+				continue
+			}
+			if r == '\'' {
+				logging.Error.Printf("skipping path with ' character in file %s \"%s\"", filepath.Base(file), path)
+				continue
+			}
+			if r == '$' {
+				logging.Error.Printf("skipping path with $ character in file %s \"%s\"", filepath.Base(file), path)
+				continue
+			}
+			if r == '\\' {
+				logging.Error.Printf("skipping path with \\ character in file %s \"%s\"", filepath.Base(file), path)
+				continue
+			}
+		}
+
 		err = VerifyPath(path)
 		if err != nil {
 			continue
 		}
 
 		// Avoid duplicates by using sync.Map to keep track of what has been found so far
-		standardizedPath := standardizePath(path)
+		standardizedPath := makeMapKey(path)
 		_, ok := ps.pathMap.Load(standardizedPath)
 		if ok {
 			logging.Error.Printf("skipping duplicate path in file %s \"%s\"", filepath.Base(file), path)
