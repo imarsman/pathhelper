@@ -115,12 +115,10 @@ func filesInDir(basePath string) (paths []string, err error) {
 		if !file.IsDir() {
 			var newPath = filepath.Join(basePath, file.Name())
 
-			if !args.Args.NoVerify {
-				err = VerifyPath(newPath)
-				if err != nil {
-					logging.Info.Printf("can't read %s %v", newPath, err)
-					continue
-				}
+			err = VerifyPath(newPath)
+			if err != nil {
+				logging.Info.Printf("can't read %s %v", newPath, err)
+				continue
 			}
 			paths = append(paths, newPath)
 		}
@@ -172,6 +170,10 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 		path = cleanDir(path)
 
+		// Optionally skip checking the file
+		// path_helper from Apple does not check dirs
+		// This does not add appreciably to time to run and lets the code remove
+		// invalid paths.
 		if !args.Args.NoVerify {
 			logging.Info.Println("checking", path)
 
