@@ -26,7 +26,7 @@ var Args struct {
 	Bash      bool `arg:"-s,--bash" help:"get bash format path settings"`
 	ZSH       bool `arg:"-z,--zsh" help:"get zsh format path settings"`
 	CSH       bool `arg:"-c,--csh" help:"get csh format path settings"`
-	Verify    bool `arg:"-V,--verify" help:"skip verify of paths"`
+	NoVerify  bool `arg:"-N,--noverify" help:"skip verify of paths"`
 	Verbose   bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
 	Trace     bool `arg:"-t,--trace" help:"display very detailed activity"`
 	Init      bool `arg:"-i,--init" help:"check and build user path dirs if necessary"`
