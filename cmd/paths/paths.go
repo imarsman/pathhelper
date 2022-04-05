@@ -115,7 +115,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 		if !file.IsDir() {
 			var newPath = filepath.Join(basePath, file.Name())
 
-			if args.Args.NoVerify {
+			if !args.Args.NoVerify {
 				err = VerifyPath(newPath)
 				if err != nil {
 					logging.Info.Printf("can't read %s %v", newPath, err)
@@ -172,7 +172,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 		path = cleanDir(path)
 
-		if args.Args.NoVerify {
+		if !args.Args.NoVerify {
 			logging.Info.Println("checking", path)
 
 			// Check to ensure path is valid
