@@ -167,12 +167,14 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		path = cleanDir(path)
 		logging.Info.Println("checking", path)
 
-		// significantly faster than strings.Contain
-		// 3,600 ns in a test of 18 paths vs about 6000 for strings.Contains
-		// The path_helper C program does the checking as well
+		// Check to ensure path is valid
+		err = VerifyPath(path)
+		if err != nil {
+			continue
+		}
 
-		// Escape characters that can be bad for a shell to read in
-		// The output of this program is an export statement for a shell variable
+		// Escape characters that can be bad for a shell to read in. This escaped value will be used for output. The
+		// output of this program is an export statement for a shell variable.
 		var sb strings.Builder
 		var escaped = ""
 		for _, r := range path {
@@ -212,11 +214,6 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			escaped = sb.String()
 		}
 
-		err = VerifyPath(path)
-		if err != nil {
-			continue
-		}
-
 		// Avoid duplicates by using sync.Map to keep track of what has been found so far
 		standardizedPath := makeMapKey(path)
 		_, ok := ps.pathMap.Load(standardizedPath)
@@ -226,7 +223,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 		ps.pathMap.Store(standardizedPath, true)
 
-		// Use the escaped version for the PATH if it is an actual path
+		// Use the escaped version for the PATH if it has passed tests
 		if escaped != "" {
 			path = escaped
 		}
