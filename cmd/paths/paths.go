@@ -174,6 +174,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		// Escape characters that can be bad for a shell to read in
 		// The output of this program is an export statement for a shell variable
 		var sb strings.Builder
+		var escaped = ""
 		for _, r := range path {
 			if r == '"' {
 				logging.Error.Printf("escaping \" character in file %s \"%s\"", filepath.Base(file), path)
@@ -208,7 +209,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			sb.WriteRune(r)
 		}
 		if sb.Len() > 0 {
-			path = sb.String()
+			escaped = sb.String()
 		}
 
 		err = VerifyPath(path)
@@ -225,10 +226,16 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		}
 		ps.pathMap.Store(standardizedPath, true)
 
+		// Use the escaped version for the PATH if it is an actual path
+		if escaped != "" {
+			path = escaped
+		}
+
 		// This is the only place we append to the paths list
 		ps.paths = append(ps.paths, path)
 	}
 	logging.Trace.Printf("done %s in %v\n", file, time.Since(t1))
+
 	err = scanner.Err()
 	if err != nil {
 		logging.Info.Println(err)
