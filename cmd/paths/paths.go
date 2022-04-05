@@ -157,6 +157,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	scanner := bufio.NewScanner(strings.NewReader(string(bytes)))
 	t1 := time.Now()
 	logging.Trace.Printf("verify %s\n", file)
+
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(path, hash) {
@@ -168,23 +169,46 @@ func (ps *pathSet) addPathsFromFile(file string) {
 
 		// significantly faster than strings.Contain
 		// 3,600 ns in a test of 18 paths vs about 6000 for strings.Contains
+		// The path_helper C program does the checking as well
+
+		var sb strings.Builder
+		// Escape characters that can be bad for a shell to read in
+		// The output of this program is an export statement for a variable
 		for _, r := range path {
 			if r == '"' {
-				logging.Error.Printf("skipping path with \" character in file %s \"%s\"", filepath.Base(file), path)
+				logging.Error.Printf("escaping \" character in file %s \"%s\"", filepath.Base(file), path)
+				sb.WriteRune('\\')
+				sb.WriteRune(r)
 				continue
 			}
 			if r == '\'' {
-				logging.Error.Printf("skipping path with ' character in file %s \"%s\"", filepath.Base(file), path)
+				logging.Error.Printf("escaping ' character in file %s \"%s\"", filepath.Base(file), path)
+				sb.WriteRune('\\')
+				sb.WriteRune(r)
 				continue
 			}
 			if r == '$' {
-				logging.Error.Printf("skipping path with $ character in file %s \"%s\"", filepath.Base(file), path)
+				logging.Error.Printf("escaping $ character in file %s \"%s\"", filepath.Base(file), path)
+				sb.WriteRune('\\')
+				sb.WriteRune(r)
 				continue
 			}
 			if r == '\\' {
-				logging.Error.Printf("skipping path with \\ character in file %s \"%s\"", filepath.Base(file), path)
+				logging.Error.Printf("escaping \\ character in file %s \"%s\"", filepath.Base(file), path)
+				sb.WriteRune('\\')
+				sb.WriteRune(r)
 				continue
 			}
+			if r == '!' {
+				logging.Error.Printf("escaping ! character in file %s \"%s\"", filepath.Base(file), path)
+				sb.WriteRune('\\')
+				sb.WriteRune(r)
+				continue
+			}
+			sb.WriteRune(r)
+		}
+		if sb.Len() > 0 {
+			path = sb.String()
 		}
 
 		err = VerifyPath(path)
