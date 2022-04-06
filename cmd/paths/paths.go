@@ -231,6 +231,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		// There is a penalty for using a sync.Map but concurrency is possible
 		standardizedPath := makeMapKey(path)
 
+		// Lock mutex for read and write block
 		ps.mu.Lock()
 		_, ok := ps.pathMap[standardizedPath]
 		if ok {
@@ -241,6 +242,8 @@ func (ps *pathSet) addPathsFromFile(file string) {
 
 		// It doesn't matter what we store. An empty struct consumes zero bytes.
 		ps.pathMap[standardizedPath] = struct{}{}
+
+		// Unlock mutex
 		ps.mu.Unlock()
 
 		// Use the escaped version for the PATH if it has passed tests
