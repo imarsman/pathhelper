@@ -238,10 +238,8 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			ps.mu.Unlock()
 			continue
 		}
-		ps.mu.Unlock()
 
 		// It doesn't matter what we store. An empty struct consumes zero bytes.
-		ps.mu.Lock()
 		ps.pathMap[standardizedPath] = struct{}{}
 		ps.mu.Unlock()
 
