@@ -26,9 +26,9 @@ var Args struct {
 	Bash      bool `arg:"-s,--bash" help:"get bash format path settings"`
 	ZSH       bool `arg:"-z,--zsh" help:"get zsh format path settings"`
 	CSH       bool `arg:"-c,--csh" help:"get csh format path settings"`
-	Verify    bool `arg:"-V,--verify" help:"verify paths"`
-	Verbose   bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
-	Trace     bool `arg:"-t,--trace" help:"display very detailed activity"`
+	Verify    bool `arg:"-V,--verify" help:"verify paths' existence before adding"`
+	Trace     bool `arg:"-t,--trace" help:"show paths evaluated and time do evaluate"`
 	Init      bool `arg:"-i,--init" help:"check and build user path dirs if necessary"`
+	Verbose   bool `arg:"-v,--verbose" help:"display issues as paths evaluated"`
 	UserFirst bool `arg:"-u,--user-first" help:"put user directories first"`
 }
