@@ -169,6 +169,20 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			continue
 		}
 		path = cleanDir(path)
+		if len(path) == 0 {
+			logging.Error.Printf("skipping empty path %s \"%s\"", filepath.Base(file), path)
+			continue
+		}
+		// ~ is converted to $HOME by now
+		if path[0] != '/' {
+			logging.Error.Printf("skipping path that does not begin with \"/\" %s \"%s\"", filepath.Base(file), path)
+			continue
+		}
+		// Don't know what this would do but it seems never appropriate
+		if path == "/" {
+			logging.Error.Printf("skipping path that is root \"/\" %s \"%s\"", filepath.Base(file), path)
+			continue
+		}
 
 		// Optionally skip checking the file
 		// path_helper from Apple does not check dirs
