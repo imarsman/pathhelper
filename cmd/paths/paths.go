@@ -162,7 +162,16 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	t1 := time.Now()
 	logging.Trace.Printf("verify %s\n", file)
 
+	lines := 0
 	for scanner.Scan() {
+		lines++
+
+		// who knows what might be encountered
+		if lines > 99 {
+			logging.Error.Printf("stopping processing of %s because line count at max of 100", file)
+			break
+		}
+
 		path := strings.TrimSpace(scanner.Text())
 		path = cleanDir(path)
 
