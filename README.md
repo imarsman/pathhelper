@@ -22,7 +22,9 @@ that is not recommented. A modification of this would just give a list of additi
 the user to append them to the main `PATH`.
 
 In addition to the work that `/usr/libexec/path_helper` does on MacOS `pathhelper` also looks in `~/.config/pathhelper/`
-for files in `paths.d` and `manpaths.d`. Here is the list of entries for `/etc/paths.d`
+for files in `paths.d` and `manpaths.d`. 
+
+Here is the list of entries for `/etc/paths.d`
 
 ```sh
 $ ls -1 /etc/paths.d
@@ -37,12 +39,25 @@ Looking at several of the above entries, it can be seen that some installers suc
 to this list. This likely makes for many fewer complaints that "go can't be found". Homebrew takes a different approach
 and adds a call with an exact path to the end of `.zprofile` that prepends to the path.
 
+`/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:...`
+
 The convention is that there will be one path per line in the main `paths` and `manpaths` and in files in the `paths.d`
 and `manpaths.d` directories. More than one line in files is permitted, and lines started with `#` are ignored.
 
-When looking for paths in files, each path encountered is checked to ensure it exists and is readable or these
-non-existent files files are ignonred. These invalid items are silently rejected but can be seen if the `-v` flag is
-used.
+## What is processed
+
+`path_helper` does not verify the paths it processes. It does escape characters, including `"`, `'`, `$`, and `\`.
+`pathhelper` aslso escapes these characters as well as `!`. I initially set `pathhelper` to by default check for the
+existence of all paths that it comes across. I have switched that to being done if the flag, `-V` is used. If you want
+to check paths and get a report on what paths do not exist, use `pathhelper -z -V -v` to verify all paths and report
+things found. Skipping the verification of each path saves about a millisecond.
+
+Here is an error for a path entry put in `/etc/paths.d` for a tool no longer installed. That also strikes me as
+something that should not be in `/etc/paths.d`. This invalid path was highlighted by running `pathhelper -z -V -v`.
+
+`ERROR stat /Users/ian/.dotnet/tools: no such file or directory`
+
+## Use in .zshenv
 
 Here is a sample setup in `.zshrc` with an attempt at a failsafe if pathhelper fails.
 
@@ -65,8 +80,9 @@ fi
 
 ## Notes
 
-Paths made as a result of a call in `.zshrc` must be added to the main `PATH` separately. If you put them in a path file
-the entry will be rejected as it would not evaluate to a valid path. Here is an example.
+Paths made as a result of a call, such as with go when calling `go env GOPATH` in `.zshrc` must be added to the main
+`PATH` separately. If you put them in a path file the entry will be rejected as it would not evaluate to a valid path.
+Here is an example.
 
 ```sh
 export GOPATH="$(go env GOPATH)"
@@ -74,9 +90,9 @@ path+=("$GOPATH/bin")
 export PATH
 ```
 
-Note that in both `bash` and `zsh` there are several files that are run at the start of a new terminal session. For `bash`
-this is `bash_profile` and for `zsh` this is `.zshprofile`. Things like homebrew install a line to `~/.zprofile` that
-runs `eval $(/opt/homebrew/bin/brew shellenv)`. This adds homebrew dirs to the path.
+Note that in both `bash` and `zsh` there are several files that are run at the start of a new terminal session. For
+`bash` this is `bash_profile` and for `zsh` this is `.zshprofile`. Homebrew installs a line to `~/.zprofile` that runs
+`eval $(/opt/homebrew/bin/brew shellenv)`. This adds homebrew dirs to the path.
 
 If desired, user directories can be put first using the `-u` flag. This could be to allow overriding of system commands.
 This is essentially what homebrew does with its invocation (`eval $(/opt/homebrew/bin/brew shellenv)`).
@@ -86,16 +102,18 @@ This is essentially what homebrew does with its invocation (`eval $(/opt/homebre
 Here is the help output for `pathhelper`
 
 ```
-$ pathhelper -h
-Usage: pathhelper [--bash] [--zsh] [--csh] [--verbose] [--trace] [--init] [--user-first]
+ pathhelper -h
+Usage: pathhelper [--bash] [--zsh] [--csh] [--verify] 
+                  [--verbose] [--trace] [--init] [--user-first]
 
 Options:
   --bash, -s             get bash format path settings
   --zsh, -z              get zsh format path settings
   --csh, -c              get csh format path settings
-  --verbose, -v          display issues as paths evaluated
-  --trace, -t            display very detailed activity
+  --verify, -V           verify paths' existence before adding
+  --trace, -t            show paths evaluated and time do evaluate
   --init, -i             check and build user path dirs if necessary
+  --verbose, -v          display issues as paths evaluated
   --user-first, -u       put user directories first
   --help, -h             display this help and exit
 ```
