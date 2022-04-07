@@ -164,11 +164,13 @@ func (ps *pathSet) addPathsFromFile(file string) {
 
 	for scanner.Scan() {
 		path := strings.TrimSpace(scanner.Text())
+		path = cleanDir(path)
+
+		// skip comment lines
 		if strings.HasPrefix(path, hash) {
 			logging.Error.Printf("skipping line in file %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
-		path = cleanDir(path)
 		// path has whitespace trimmed
 		if len(path) == 0 {
 			logging.Error.Printf("skipping empty path %s \"%s\"", filepath.Base(file), path)
@@ -198,6 +200,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 				continue
 			}
 		}
+
 		// Escape characters that can be bad for a shell to read in. This escaped value will be used for output. The
 		// output of this program is an export statement for a shell variable.
 		// Macos allows these characters in filenames and paths.
@@ -242,8 +245,8 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			escaped = sb.String()
 		}
 
-		// Avoid duplicates by using sync.Map to keep track of what has been found so far
-		// There is a penalty for using a sync.Map but concurrency is possible
+		// Avoid duplicates by using map to keep track of what has been found so far
+		// mutex used to protect any future concurrent access
 		standardizedPath := makeMapKey(path)
 
 		// Lock mutex for read and write block
