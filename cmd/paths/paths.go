@@ -169,11 +169,12 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			continue
 		}
 		path = cleanDir(path)
+		// path has whitespace trimmed
 		if len(path) == 0 {
 			logging.Error.Printf("skipping empty path %s \"%s\"", filepath.Base(file), path)
 			continue
 		}
-		// ~ is converted to $HOME by now
+		// ~ is converted to $HOME by now so all paths should be absolute
 		if path[0] != '/' {
 			logging.Error.Printf("skipping path that does not begin with \"/\" %s \"%s\"", filepath.Base(file), path)
 			continue
@@ -184,10 +185,10 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			continue
 		}
 
-		// Optionally skip checking the file
+		// By default skip verifying dirs
 		// path_helper from Apple does not check dirs
-		// This does not add appreciably to time to run and lets the code remove
-		// invalid paths.
+		// Verifying adds about a ms to time to run
+		// To find invalid paths run `pathhelper -z -V -v`
 		if args.Args.Verify {
 			logging.Info.Println("checking", path)
 
