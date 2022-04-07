@@ -98,14 +98,14 @@ func reverseInt(a []int) []int {
 	return a
 }
 
-type Ordered interface {
+type Listed interface {
 	int | int8 | int16 | int32 | int64 |
 		uint | uint8 | uint16 |
 		uint32 | uint64 | uintptr |
 		float32 | float64 | string
 }
 
-func reverseGeneric[T Ordered](a []T) []T {
+func reverseGeneric[T Listed](a []T) []T {
 	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
 		a[i], a[j] = a[j], a[i]
 	}

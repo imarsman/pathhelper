@@ -174,7 +174,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 		// path_helper from Apple does not check dirs
 		// This does not add appreciably to time to run and lets the code remove
 		// invalid paths.
-		if !args.Args.NoVerify {
+		if args.Args.Verify {
 			logging.Info.Println("checking", path)
 
 			// Check to ensure path is valid
