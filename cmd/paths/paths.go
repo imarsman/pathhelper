@@ -168,7 +168,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 
 		// who knows what might be encountered
 		if lines > 99 {
-			logging.Error.Printf("stopping processing of %s because line count at max of 100", file)
+			logging.Error.Printf("stopping processing of %s because line count max of 100", file)
 			break
 		}
 
