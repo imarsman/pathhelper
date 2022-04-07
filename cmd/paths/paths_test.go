@@ -1,6 +1,7 @@
 package paths
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -86,5 +87,56 @@ func BenchmarkPathLoad(b *testing.B) {
 	if b.N == 1 {
 		b.Log(cp.paths)
 		b.Log(cmp.paths)
+	}
+}
+
+func reverseInt(a []int) []int {
+	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+		a[i], a[j] = a[j], a[i]
+	}
+
+	return a
+}
+
+type Ordered interface {
+	int | int8 | int16 | int32 | int64 |
+		uint | uint8 | uint16 |
+		uint32 | uint64 | uintptr |
+		float32 | float64 | string
+}
+
+func reverseGeneric[T Ordered](a []T) []T {
+	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+		a[i], a[j] = a[j], a[i]
+	}
+
+	return a
+}
+
+func TestReverse(t *testing.T) {
+	a := []int{1, 2, 3, 4, 5}
+	fmt.Println("input", a)
+	a = reverseGeneric(a)
+	fmt.Println("reversed input", a)
+
+	sA := []string{"a", "b", "c", "d", "e"}
+	fmt.Println("input", sA)
+	sA = reverseGeneric(sA)
+	fmt.Println("reversed input", sA)
+}
+
+// go test -benchmem -run=Bench -bench=Reverse
+
+func BenchmarkReverseType(b *testing.B) {
+	a := []int{1, 2, 3, 4, 5}
+	for i := 0; i < b.N; i++ {
+		a = reverseInt(a)
+	}
+}
+
+func BenchmarkReverseGeneric(b *testing.B) {
+	a := []int{1, 2, 3, 4, 5}
+	for i := 0; i < b.N; i++ {
+		a = reverseGeneric(a)
 	}
 }
