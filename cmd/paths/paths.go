@@ -166,14 +166,14 @@ func (ps *pathSet) addPathsFromFile(file string) {
 	for scanner.Scan() {
 		lines++
 
+		path := strings.TrimSpace(scanner.Text())
+		path = cleanDir(path)
+
 		// who knows what might be encountered
 		if lines > 99 {
 			logging.Error.Printf("stopping processing of %s because line count max of 100", file)
 			break
 		}
-
-		path := strings.TrimSpace(scanner.Text())
-		path = cleanDir(path)
 
 		// skip comment lines
 		if strings.HasPrefix(path, hash) {
@@ -210,39 +210,37 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			}
 		}
 
+		var sb strings.Builder
+		var escaped = ""
+
 		// Escape characters that can be bad for a shell to read in. This escaped value will be used for output. The
 		// output of this program is an export statement for a shell variable.
 		// Macos allows these characters in filenames and paths.
 		// Similar logic to darwin C original
 		// https://opensource.apple.com/source/shell_cmds/shell_cmds-162/path_helper/path_helper.c.auto.html
-		var sb strings.Builder
-		var escaped = ""
 		for _, r := range path {
-			if r == '"' {
+			switch r {
+			case '"':
 				logging.Error.Printf("escaping \" character in file %s \"%s\"", filepath.Base(file), path)
 				sb.WriteRune('\\')
 				sb.WriteRune(r)
 				continue
-			}
-			if r == '\'' {
+			case '\'':
 				logging.Error.Printf("escaping ' character in file %s \"%s\"", filepath.Base(file), path)
 				sb.WriteRune('\\')
 				sb.WriteRune(r)
 				continue
-			}
-			if r == '$' {
+			case '$':
 				logging.Error.Printf("escaping $ character in file %s \"%s\"", filepath.Base(file), path)
 				sb.WriteRune('\\')
 				sb.WriteRune(r)
 				continue
-			}
-			if r == '\\' {
+			case '\\':
 				logging.Error.Printf("escaping \\ character in file %s \"%s\"", filepath.Base(file), path)
 				sb.WriteRune('\\')
 				sb.WriteRune(r)
 				continue
-			}
-			if r == '!' {
+			case '!':
 				logging.Error.Printf("escaping ! character in file %s \"%s\"", filepath.Base(file), path)
 				sb.WriteRune('\\')
 				sb.WriteRune(r)
