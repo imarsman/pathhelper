@@ -72,8 +72,8 @@ func checkUserOnlyRW(path string) (userOnly bool, err error) {
 	// Check for required permissions
 	//https://stackoverflow.com/questions/45429210/how-do-i-check-a-files-permissions-in-linux-using-go
 	// https://codereview.stackexchange.com/questions/79020/bitwise-operators-for-permissions/79100#79100
-	if mode.Perm() != 0o600 {
-		err = fmt.Errorf("error for %s %v permissions must be 600 but are", path, mode)
+	if mode.Perm() != 0o700 {
+		err = fmt.Errorf("error for %s %v permissions must be 700 but are", path, mode)
 		return
 	}
 
