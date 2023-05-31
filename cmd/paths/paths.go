@@ -40,7 +40,7 @@ type pathSet struct {
 	paths      []string
 	// pathMap    sync.Map
 	pathMap map[string]struct{}
-	mu      sync.Mutex
+	mu      *sync.Mutex
 }
 
 // Setup set up user directories if they don't exist
@@ -95,6 +95,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.userDir = userDir
 	ps.userDir = cleanDir(ps.userDir)
 	ps.pathMap = make(map[string]struct{})
+	ps.mu = new(sync.Mutex)
 
 	return
 }
@@ -366,17 +367,8 @@ func (ps *pathSet) populate() (err error) {
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
 
+	// Run Setup() to check user dirs before proceeding
 	Setup()
-	// _, err = checkUserOnlyRW(cleanDir(userPathDir))
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	os.Exit(1)
-	// }
-	// _, err = checkUserOnlyRW(userManPathDir)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	os.Exit(1)
-	// }
 
 	var repeat = 80
 
