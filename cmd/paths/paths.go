@@ -57,9 +57,42 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 var configPaths *pathSet
 var configManPaths *pathSet
 
+func checkUserOnly(path string) (userOnly bool) {
+	path = cleanDir(path)
+
+	info, err := os.Stat(path)
+	if err != nil {
+		fmt.Printf("error getting file info: %v", err)
+		return
+	}
+	mode := info.Mode()
+
+	// Check for required permissions
+	//https://stackoverflow.com/questions/45429210/how-do-i-check-a-files-permissions-in-linux-using-go
+	// https://codereview.stackexchange.com/questions/79020/bitwise-operators-for-permissions/79100#79100
+	if mode.Perm() != 0o600 {
+		fmt.Println("error for", path, "permissions must be 600 but are", mode)
+		return true
+	}
+
+	return
+}
+
 func init() {
 	// Instantiate and populate - we can do this because the program runs once
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
+
+	userOnly := checkUserOnly(cleanDir(userPathDir))
+	if userOnly {
+		fmt.Println("invalid permissions for", cleanDir(userPathDir))
+		os.Exit(1)
+	}
+	userOnly = checkUserOnly(userManPathDir)
+	if userOnly {
+		fmt.Println("invalid permissions for", cleanDir(userManPathDir))
+		os.Exit(1)
+	}
+
 	configManPaths = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
 	configPaths.populate()
