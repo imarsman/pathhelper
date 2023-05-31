@@ -57,7 +57,7 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 var configPaths *pathSet
 var configManPaths *pathSet
 
-func checkUserOnly(path string) (userOnly bool) {
+func checkUserOnlyRW(path string) (userOnly bool) {
 	path = cleanDir(path)
 
 	info, err := os.Stat(path)
@@ -82,12 +82,12 @@ func init() {
 	// Instantiate and populate - we can do this because the program runs once
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
 
-	userOnly := checkUserOnly(cleanDir(userPathDir))
+	userOnly := checkUserOnlyRW(cleanDir(userPathDir))
 	if userOnly {
 		fmt.Println("invalid permissions for", cleanDir(userPathDir))
 		os.Exit(1)
 	}
-	userOnly = checkUserOnly(userManPathDir)
+	userOnly = checkUserOnlyRW(userManPathDir)
 	if userOnly {
 		fmt.Println("invalid permissions for", cleanDir(userManPathDir))
 		os.Exit(1)
