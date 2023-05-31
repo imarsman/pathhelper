@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -57,10 +58,11 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 var configPaths *pathSet
 var configManPaths *pathSet
 
-func checkUserOnlyRW(path string) (userOnly bool) {
+func checkUserOnlyRW(path string) (userOnly bool, err error) {
 	path = cleanDir(path)
 
-	info, err := os.Stat(path)
+	var info fs.FileInfo
+	info, err = os.Stat(path)
 	if err != nil {
 		fmt.Printf("error getting file info: %v", err)
 		return
@@ -71,8 +73,8 @@ func checkUserOnlyRW(path string) (userOnly bool) {
 	//https://stackoverflow.com/questions/45429210/how-do-i-check-a-files-permissions-in-linux-using-go
 	// https://codereview.stackexchange.com/questions/79020/bitwise-operators-for-permissions/79100#79100
 	if mode.Perm() != 0o600 {
-		fmt.Println("error for", path, "permissions must be 600 but are", mode)
-		return true
+		err = fmt.Errorf("error for %s %v permissions must be 600 but are", path, mode)
+		return
 	}
 
 	return
@@ -82,14 +84,14 @@ func init() {
 	// Instantiate and populate - we can do this because the program runs once
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
 
-	userOnly := checkUserOnlyRW(cleanDir(userPathDir))
-	if userOnly {
-		fmt.Println("invalid permissions for", cleanDir(userPathDir))
+	_, err := checkUserOnlyRW(cleanDir(userPathDir))
+	if err != nil {
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	userOnly = checkUserOnlyRW(userManPathDir)
-	if userOnly {
-		fmt.Println("invalid permissions for", cleanDir(userManPathDir))
+	_, err = checkUserOnlyRW(userManPathDir)
+	if err != nil {
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
