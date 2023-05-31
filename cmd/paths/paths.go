@@ -43,6 +43,50 @@ type pathSet struct {
 	mu      sync.Mutex
 }
 
+// Setup set up user directories if they don't exist
+func Setup() {
+	fileMode := fs.FileMode(0755)
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	pathsDir := filepath.Join(homeDir, ".config", "pathhelper", "paths.d")
+	manpathsDir := filepath.Join(homeDir, ".config", "pathhelper", "manpaths.d")
+
+	if _, err := os.Stat(pathsDir); os.IsNotExist(err) {
+		// path/to/whatever does not exist
+		err = VerifyPath(pathsDir)
+		if err != nil {
+			fmt.Println("- creating user paths dir", pathsDir)
+			err = os.MkdirAll(pathsDir, fileMode)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	} else {
+		_, err = checkUserOnlyRW(cleanDir(userPathDir))
+		if err != nil {
+			os.Chmod(pathsDir, 0700)
+		}
+
+	}
+	if _, err := os.Stat(manpathsDir); os.IsNotExist(err) {
+		err = VerifyPath(manpathsDir)
+		if err != nil {
+			fmt.Println("- creating user manpaths dir", manpathsDir)
+			err = os.MkdirAll(manpathsDir, fileMode)
+		}
+	} else {
+		_, err = checkUserOnlyRW(userManPathDir)
+		if err != nil {
+			os.Chmod(manpathsDir, 0700)
+		}
+	}
+
+}
+
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
 	ps = &pathSet{}
 	ps.kind = kind
@@ -73,7 +117,7 @@ func checkUserOnlyRW(path string) (userOnly bool, err error) {
 	//https://stackoverflow.com/questions/45429210/how-do-i-check-a-files-permissions-in-linux-using-go
 	// https://codereview.stackexchange.com/questions/79020/bitwise-operators-for-permissions/79100#79100
 	if mode.Perm() != 0o700 {
-		err = fmt.Errorf("error for %s %v permissions must be 700 but are", path, mode)
+		err = fmt.Errorf("error for %s permissions must be 700 but are %v", path, mode)
 		return
 	}
 
@@ -83,17 +127,6 @@ func checkUserOnlyRW(path string) (userOnly bool, err error) {
 func init() {
 	// Instantiate and populate - we can do this because the program runs once
 	configPaths = newPathSet(pathTypePath, systemPathFile, systemPathDir, userPathDir)
-
-	_, err := checkUserOnlyRW(cleanDir(userPathDir))
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	_, err = checkUserOnlyRW(userManPathDir)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
 
 	configManPaths = newPathSet(pathTypeManPath, systemManPathFile, systemManPathDir, userManPathDir)
 
@@ -332,6 +365,18 @@ func (ps *pathSet) populate() (err error) {
 	// The channel is used as a means of sending ordered data.
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
+
+	Setup()
+	// _, err = checkUserOnlyRW(cleanDir(userPathDir))
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	os.Exit(1)
+	// }
+	// _, err = checkUserOnlyRW(userManPathDir)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	os.Exit(1)
+	// }
 
 	var repeat = 80
 
