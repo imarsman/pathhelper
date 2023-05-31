@@ -59,7 +59,7 @@ func Setup() {
 		// path/to/whatever does not exist
 		err = VerifyPath(pathsDir)
 		if err != nil {
-			fmt.Println("- creating user paths dir", pathsDir)
+			fmt.Fprintln(os.Stderr, "- creating user paths dir", pathsDir)
 			err = os.MkdirAll(pathsDir, fileMode)
 			if err != nil {
 				fmt.Println(err)
@@ -75,7 +75,7 @@ func Setup() {
 	if _, err := os.Stat(manpathsDir); os.IsNotExist(err) {
 		err = VerifyPath(manpathsDir)
 		if err != nil {
-			fmt.Println("- creating user manpaths dir", manpathsDir)
+			fmt.Fprintln(os.Stderr, "- creating user manpaths dir", manpathsDir)
 			err = os.MkdirAll(manpathsDir, fileMode)
 		}
 	} else {
