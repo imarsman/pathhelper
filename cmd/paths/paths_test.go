@@ -140,3 +140,12 @@ func BenchmarkReverseGeneric(b *testing.B) {
 		a = reverseGeneric(a)
 	}
 }
+
+func BenchmarkGetPaths(b *testing.B) {
+	var paths string
+	for i := 0; i < b.N; i++ {
+		paths = BashFormatPath()
+		BashFormatManPath()
+	}
+	b.Log(paths)
+}
