@@ -431,6 +431,7 @@ func ZshFormatManPath() (output string) {
 	return configManPaths.zshFormat()
 }
 
+// Output paths in zsh format
 func (ps pathSet) zshFormat() (output string) {
 	output = fmt.Sprintf("export %s=\"%s\";", ps.kind, strings.Join(ps.paths, ":"))
 	return
@@ -446,6 +447,7 @@ func CshFormatManPath() (output string) {
 	return configManPaths.cshFormat()
 }
 
+// Output paths in csh format
 func (ps pathSet) cshFormat() (output string) {
 	output = fmt.Sprintf("setenv %s=\"%s\";", ps.kind, strings.Join(ps.paths, ":"))
 
