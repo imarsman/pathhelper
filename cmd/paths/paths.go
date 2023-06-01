@@ -32,59 +32,29 @@ const (
 	userManPathDir    = `~/.config/pathhelper/manpaths.d`
 )
 
+var homeDir, userPathsDirAbsolute, userManpathsDirAbsolute string
+
+func init() {
+	// Get user home dir
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	// Define user paths and manpaths dirs
+	userPathsDirAbsolute = filepath.Join(homeDir, ".config", "pathhelper", "paths.d")
+	userManpathsDirAbsolute = filepath.Join(homeDir, ".config", "pathhelper", "manpaths.d")
+}
+
+// pathSet contains information on a path
 type pathSet struct {
 	kind       pathType
 	systemPath string
 	systemDir  string
 	userDir    string
 	paths      []string
-	// pathMap    sync.Map
-	pathMap map[string]struct{}
-	mu      *sync.Mutex
-}
-
-// Setup set up user directories if they don't exist
-func Setup() {
-	fileMode := fs.FileMode(0755)
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		os.Exit(1)
-	}
-
-	pathsDir := filepath.Join(homeDir, ".config", "pathhelper", "paths.d")
-	manpathsDir := filepath.Join(homeDir, ".config", "pathhelper", "manpaths.d")
-
-	if _, err := os.Stat(pathsDir); os.IsNotExist(err) {
-		// path/to/whatever does not exist
-		err = VerifyPath(pathsDir)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "- creating user paths dir", pathsDir)
-			err = os.MkdirAll(pathsDir, fileMode)
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	} else {
-		_, err = checkUserOnlyRW(cleanDir(userPathDir))
-		if err != nil {
-			os.Chmod(pathsDir, 0700)
-		}
-
-	}
-	if _, err := os.Stat(manpathsDir); os.IsNotExist(err) {
-		err = VerifyPath(manpathsDir)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "- creating user manpaths dir", manpathsDir)
-			err = os.MkdirAll(manpathsDir, fileMode)
-		}
-	} else {
-		_, err = checkUserOnlyRW(userManPathDir)
-		if err != nil {
-			os.Chmod(manpathsDir, 0700)
-		}
-	}
-
+	pathMap    map[string]struct{}
+	mu         *sync.Mutex
 }
 
 func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathSet) {
@@ -98,6 +68,43 @@ func newPathSet(kind pathType, systemPath, systemDir, userDir string) (ps *pathS
 	ps.mu = new(sync.Mutex)
 
 	return
+}
+
+// setup set up user directories if they don't exist
+// Consider not using this from a flag as it's basically used every run
+func setup() {
+	fileMode := fs.FileMode(0755)
+
+	if _, err := os.Stat(userPathsDirAbsolute); os.IsNotExist(err) {
+		// path/to/whatever does not exist
+		err = verifyPath(userPathsDirAbsolute)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "- creating user paths dir", userPathsDirAbsolute)
+			err = os.MkdirAll(userPathsDirAbsolute, fileMode)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	} else {
+		_, err = checkUserOnlyRW(cleanDir(userPathDir))
+		if err != nil {
+			os.Chmod(userPathsDirAbsolute, 0700)
+		}
+
+	}
+	if _, err := os.Stat(userManpathsDirAbsolute); os.IsNotExist(err) {
+		err = verifyPath(userManpathsDirAbsolute)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "- creating user manpaths dir", userManpathsDirAbsolute)
+			err = os.MkdirAll(userManpathsDirAbsolute, fileMode)
+		}
+	} else {
+		_, err = checkUserOnlyRW(userManPathDir)
+		if err != nil {
+			os.Chmod(userManpathsDirAbsolute, 0700)
+		}
+	}
+
 }
 
 var configPaths *pathSet
@@ -135,8 +142,8 @@ func init() {
 	configManPaths.populate()
 }
 
-// VerifyPath verify a path
-func VerifyPath(path string) (err error) {
+// verifyPath verify a path
+func verifyPath(path string) (err error) {
 	// Check if file exists and return with error if not
 	if _, err = os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		logging.Error.Println(err)
@@ -184,7 +191,7 @@ func filesInDir(basePath string) (paths []string, err error) {
 		if !file.IsDir() {
 			var newPath = filepath.Join(basePath, file.Name())
 
-			err = VerifyPath(newPath)
+			err = verifyPath(newPath)
 			if err != nil {
 				logging.Info.Printf("can't read %s %v", newPath, err)
 				continue
@@ -273,7 +280,7 @@ func (ps *pathSet) addPathsFromFile(file string) {
 			logging.Info.Println("checking", path)
 
 			// Check to ensure path is valid
-			err = VerifyPath(path)
+			err = verifyPath(path)
 			if err != nil {
 				continue
 			}
@@ -367,8 +374,8 @@ func (ps *pathSet) populate() (err error) {
 	// We intentionally do not want concurrency in channel add as we need to
 	// maintain the ordering of the path variable we are building.
 
-	// Run Setup() to check user dirs before proceeding
-	Setup()
+	// Run setup() to check user dirs before proceeding
+	setup()
 
 	var repeat = 80
 
@@ -464,6 +471,7 @@ func BashFormatManPath() (output string) {
 	return configManPaths.bashFormat()
 }
 
+// bashFormat get output in bash format
 func (ps pathSet) bashFormat() (output string) {
 	output = fmt.Sprintf("%s=\"%s\"; export %s;", ps.kind, strings.Join(ps.paths, ":"), ps.kind)
 
