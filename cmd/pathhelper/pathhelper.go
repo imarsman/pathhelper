@@ -11,12 +11,6 @@ import (
 // /usr/libexec/path_helper
 
 func main() {
-	// if args.Args.Init {
-	// 	paths.Setup()
-
-	// 	return
-	// }
-
 	if args.Args.Bash {
 		// Get bash style path and manpath setting
 		fmt.Println(paths.BashFormatPath())
